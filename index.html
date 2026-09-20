@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ledger XAU — Controle de Trading</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#12151A">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #12151A;
+    --surface: #1B1F27;
+    --surface-2: #232833;
+    --border: #2E3440;
+    --text: #EAECEF;
+    --text-dim: #8B93A3;
+    --gold: #C9A227;
+    --gold-soft: rgba(201,162,39,0.14);
+    --teal: #3FA796;
+    --teal-soft: rgba(63,167,150,0.14);
+    --slate: #6C8CB8;
+    --slate-soft: rgba(108,140,184,0.14);
+    --danger: #D96C6C;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #F5F4F0;
+      --surface: #FFFFFF;
+      --surface-2: #F0EEE8;
+      --border: #DEDBD2;
+      --text: #1B1D22;
+      --text-dim: #6B6F7A;
+      --gold-soft: rgba(201,162,39,0.12);
+      --teal-soft: rgba(63,167,150,0.12);
+      --slate-soft: rgba(108,140,184,0.12);
+    }
+  }
+  :root[data-theme="light"] {
+    --bg: #F5F4F0;
+    --surface: #FFFFFF;
+    --surface-2: #F0EEE8;
+    --border: #DEDBD2;
+    --text: #1B1D22;
+    --text-dim: #6B6F7A;
+    --gold-soft: rgba(201,162,39,0.12);
+    --teal-soft: rgba(63,167,150,0.12);
+    --slate-soft: rgba(108,140,184,0.12);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-family: 'JetBrains Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+  header.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: calc(14px + env(safe-area-inset-top, 0px)) 18px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .brand { display: flex; align-items: baseline; gap: 8px; }
+  .brand .mark { color: var(--gold); font-size: 20px; }
+  .brand h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: 0.2px; }
+  .brand .sub { font-size: 11px; color: var(--text-dim); }
+  .theme-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-dim);
+    width: 34px; height: 34px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; cursor: pointer;
+  }
+
+  nav.tabs {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    background: var(--bg);
+    position: sticky;
+    top: calc(60px + env(safe-area-inset-top, 0px));
+    z-index: 9;
+    border-bottom: 1px solid var(--border);
+  }
+  nav.tabs button {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-dim);
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 13.5px;
+    cursor: pointer;
+  }
+  nav.tabs button.active {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border);
+  }
+
+  main { padding: 16px 14px calc(40px + env(safe-area-inset-bottom, 0px)); max-width: 640px; margin: 0 auto; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+  }
+  .card-label {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    margin: 0 0 8px;
+  }
+  .config-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .config-row input {
+    width: 130px;
+    text-align: right;
+    font-size: 18px;
+    font-weight: 600;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--gold);
+    padding: 7px 9px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 10px; }
+  .stat .k { font-size: 10.5px; color: var(--text-dim); margin-bottom: 4px; }
+  .stat .v { font-size: 15px; font-weight: 700; }
+
+  .add-btn {
+    width: 100%;
+    padding: 13px;
+    border-radius: 12px;
+    border: 1px dashed var(--gold);
+    background: var(--gold-soft);
+    color: var(--gold);
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    margin-bottom: 14px;
+  }
+
+  .day-card { position: relative; }
+  .day-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .day-head .day-n { font-size: 12px; color: var(--text-dim); font-weight: 700; }
+  .day-head input[type="date"] {
+    background: transparent; border: none; color: var(--text);
+    font-family: inherit; font-size: 13px; font-weight: 600; text-align: right;
+  }
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+  .flow .amt { color: var(--text); font-weight: 600; }
+  .sess-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .sess { background: var(--surface-2); border-radius: 10px; padding: 8px 10px; }
+  .sess .lbl { font-size: 10.5px; color: var(--text-dim); margin-bottom: 4px; }
+  .sess .in-row { display: flex; align-items: center; gap: 4px; }
+  .sess .in-row span { color: var(--text-dim); font-size: 13px; }
+  .sess input {
+    width: 100%; background: transparent; border: none; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 15px; font-weight: 600; padding: 2px 0;
+  }
+  .sess .pct { font-size: 10.5px; color: var(--teal); margin-top: 2px; }
+  .day-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .net-badge { font-size: 12.5px; font-weight: 700; padding: 3px 9px; border-radius: 20px; }
+  .net-pos { background: var(--teal-soft); color: var(--teal); }
+  .net-neg { background: rgba(217,108,108,0.14); color: var(--danger); }
+  .net-zero { background: var(--surface-2); color: var(--text-dim); }
+  .del-btn { background: none; border: none; color: var(--text-dim); font-size: 12px; cursor: pointer; padding: 4px 6px; }
+  .del-btn:hover { color: var(--danger); }
+
+  .empty { text-align: center; padding: 30px 14px; color: var(--text-dim); font-size: 13.5px; }
+
+  .chart-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 14px; }
+  .chart-wrap canvas { max-height: 190px; }
+
+  .milestone-card { display: flex; align-items: center; gap: 12px; }
+  .ms-day { width: 52px; text-align: center; }
+  .ms-day .d { font-size: 18px; font-weight: 700; }
+  .ms-day .lbl { font-size: 9.5px; color: var(--text-dim); }
+  .ms-body { flex: 1; min-width: 0; }
+  .ms-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .ms-saldo { font-size: 17px; font-weight: 700; }
+  .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+  .badge-real { background: var(--teal-soft); color: var(--teal); }
+  .badge-proj { background: var(--slate-soft); color: var(--slate); }
+  .ms-meta { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--text-dim); flex-wrap: wrap; }
+  .ms-meta b { color: var(--text); font-weight: 600; }
+  .n-input {
+    width: 42px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px; text-align: center; padding: 2px 0;
+  }
+
+  .legend-note { font-size: 11.5px; color: var(--text-dim); line-height: 1.5; padding: 4px 4px 0; }
+  .reset-row { text-align: center; margin-top: 18px; }
+  .reset-row button {
+    background: none; border: none; color: var(--text-dim); font-size: 12px;
+    text-decoration: underline; cursor: pointer; font-family: inherit;
+  }
+
+  .trade-quick { display: flex; gap: 8px; align-items: center; }
+  .trade-quick input {
+    flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 16px; font-weight: 600;
+    padding: 10px 12px; text-align: center;
+  }
+  .trade-quick button {
+    background: var(--gold); color: var(--bg); border: none; border-radius: 10px;
+    padding: 10px 16px; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .recent-trades { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .recent-chip {
+    display: flex; align-items: center; gap: 6px; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 10px 4px 12px; font-size: 12px;
+  }
+  .recent-chip .x { background: none; border: none; color: var(--text-dim); font-size: 12px; cursor: pointer; padding: 0; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; }
+  .switch { position: relative; width: 42px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider {
+    position: absolute; inset: 0; background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: 20px; cursor: pointer; transition: 0.15s;
+  }
+  .switch .slider:before {
+    content: ""; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px;
+    background: var(--text-dim); border-radius: 50%; transition: 0.15s;
+  }
+  .switch input:checked + .slider { background: var(--gold-soft); border-color: var(--gold); }
+  .switch input:checked + .slider:before { transform: translateX(18px); background: var(--gold); }
+  .ms2-body { flex: 1; min-width: 0; }
+  .ms2-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; }
+  .ms2-row .tag { font-size: 10px; color: var(--text-dim); width: 62px; flex-shrink: 0; }
+  .ms2-row .val { font-size: 14px; font-weight: 700; }
+  .ms2-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  .profile-chip {
+    background: none; border: none; padding: 0; margin: 0;
+    font-size: 11px; color: var(--text-dim); font-family: inherit; cursor: pointer;
+    text-decoration: underline; text-align: left;
+  }
+  .profile-overlay {
+    position: fixed; inset: 0; z-index: 1000; background: var(--bg);
+    display: none; align-items: flex-start; justify-content: center;
+    overflow-y: auto;
+    padding: calc(24px + env(safe-area-inset-top, 0px)) 18px calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+  .profile-overlay.show { display: flex; }
+  .profile-panel { width: 100%; max-width: 420px; }
+  .profile-head { text-align: center; margin-bottom: 20px; }
+  .profile-head h2 { font-size: 18px; margin: 10px 0 6px; }
+  .profile-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin: 0; }
+  .profile-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  .profile-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 13px 14px; cursor: pointer;
+  }
+  .profile-item.active { border-color: var(--gold); background: var(--gold-soft); }
+  .profile-item .name { font-weight: 700; font-size: 14.5px; }
+  .profile-item .tag { font-size: 10.5px; color: var(--text-dim); margin-top: 2px; }
+  .profile-item .del {
+    background: none; border: none; color: var(--text-dim); font-size: 15px; cursor: pointer; padding: 6px;
+  }
+  .profile-item .del:hover { color: var(--danger); }
+  .profile-new { display: flex; gap: 8px; }
+  .profile-new input {
+    flex: 1; background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: inherit; font-size: 14px; padding: 11px 12px;
+  }
+  .profile-new button {
+    background: var(--gold); color: var(--bg); border: none; border-radius: 10px;
+    padding: 0 16px; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .profile-close {
+    display: block; width: 100%; text-align: center; margin-top: 16px;
+    background: none; border: none; color: var(--text-dim); font-size: 12.5px;
+    text-decoration: underline; cursor: pointer; font-family: inherit;
+  }
+</style>
+</head>
+<body>
+
+<div id="profileOverlay" class="profile-overlay">
+  <div class="profile-panel">
+    <div class="profile-head">
+      <span class="mark" style="font-size:26px;">◆</span>
+      <h2 id="profileHeadTitle">Selecione um perfil</h2>
+      <p class="profile-sub">Cada perfil guarda seus próprios dados, separados dos outros — ex: contas diferentes na corretora.</p>
+    </div>
+    <div id="profileList" class="profile-list"></div>
+    <div class="profile-new">
+      <input type="text" id="newProfileName" placeholder="Ex: Vantage - Conta Cent" maxlength="60">
+      <button id="createProfileBtn">+ Criar perfil</button>
+    </div>
+    <button id="closeProfileOverlay" class="profile-close" style="display:none;">Cancelar</button>
+  </div>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="mark">◆</span>
+    <div>
+      <h1>Ledger XAU</h1>
+      <button class="sub profile-chip" id="profileChipBtn">Trocar perfil</button>
+    </div>
+  </div>
+  <button class="theme-btn" id="themeBtn" title="Alternar tema">◐</button>
+</header>
+
+<nav class="tabs">
+  <button class="active" data-view="diario">Diário</button>
+  <button data-view="projecao">Projeção</button>
+  <button data-view="lote">Lote</button>
+  <button data-view="trade">Por Trade</button>
+</nav>
+
+<main>
+
+  <section id="view-diario" class="view active">
+    <div class="card">
+      <p class="card-label">Saldo inicial da conta</p>
+      <div class="config-row">
+        <span style="color:var(--text-dim); font-size:13px;">US$</span>
+        <input type="number" id="initialBalance" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+
+    <button class="add-btn" id="addDayBtn">+ Adicionar dia</button>
+
+    <div id="daysList"></div>
+    <div id="diarioEmpty" class="empty" style="display:none;">Nenhum dia lançado ainda. Toque em "Adicionar dia" para começar.</div>
+  </section>
+
+  <section id="view-projecao" class="view">
+    <div class="stat-grid">
+      <div class="stat"><div class="k">Saldo inicial</div><div class="v num" id="statInitial">—</div></div>
+      <div class="stat"><div class="k">Último dia real</div><div class="v num" id="statLastDay">—</div></div>
+      <div class="stat"><div class="k">Saldo atual</div><div class="v num" id="statCurrent">—</div></div>
+    </div>
+
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+
+    <div id="milestonesList"></div>
+
+    <p class="legend-note">
+      <b>N</b> = quantos dos últimos dias reais entram na média de retorno usada para projetar aquele marco (editável por marco).
+      Ao lançar dias na aba Diário, os marcos alcançados travam em <span style="color:var(--teal); font-weight:700;">Real</span> e os seguintes recalculam como
+      <span style="color:var(--slate); font-weight:700;">Projetado</span>.
+    </p>
+  </section>
+
+  <section id="view-lote" class="view">
+    <div class="card">
+      <p class="card-label">Saldo considerado</p>
+      <div class="config-row">
+        <span style="color:var(--text-dim); font-size:13px;">US$</span>
+        <input type="number" id="lotBalance" step="0.01" inputmode="decimal">
+      </div>
+    </div>
+    <div class="card">
+      <p class="card-label">Risco alvo (% do saldo)</p>
+      <div class="config-row">
+        <input type="number" id="lotRiskPct" step="0.01" inputmode="decimal" style="width:100px;">
+        <span style="color:var(--text-dim); font-size:13px;">%</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="card-label">Distância até o stop (pontos)</p>
+      <div class="config-row">
+        <input type="number" id="lotPoints" step="0.1" inputmode="decimal" style="width:100px;">
+        <span style="color:var(--text-dim); font-size:13px;">pts</span>
+      </div>
+    </div>
+    <div class="card">
+      <p class="card-label">Valor por ponto em 1.00 lote (US$)</p>
+      <div class="config-row">
+        <input type="number" id="lotPointValue" step="0.01" inputmode="decimal" style="width:100px;">
+        <span style="color:var(--text-dim); font-size:13px;">US$</span>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center;">
+      <p class="card-label">Lote sugerido</p>
+      <div id="lotResult" class="num" style="font-size:32px; font-weight:700; color:var(--gold);">—</div>
+      <div id="lotRiskAmount" class="num" style="font-size:12.5px; color:var(--text-dim); margin-top:6px;">—</div>
+    </div>
+
+    <p class="legend-note">
+      Fórmula: lote = (saldo × risco%) ÷ (pontos × valor por ponto). O valor por ponto padrão do XAUUSD costuma ser
+      US$100 por lote de 100 oz — confira a especificação de contrato na sua corretora antes de operar.
+    </p>
+  </section>
+
+  <section id="view-trade" class="view">
+    <div class="card">
+      <p class="card-label">Registrar resultado do trade</p>
+      <div class="trade-quick">
+        <input type="number" id="tradeResultInput" step="0.01" inputmode="decimal" placeholder="US$ resultado">
+        <button id="tradeAddBtn">+ Registrar</button>
+      </div>
+      <div class="recent-trades" id="recentTrades"></div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="k">Trades lançados</div><div class="v num" id="tStatCount">0</div></div>
+      <div class="stat"><div class="k">Saldo atual</div><div class="v num" id="tStatBalance">—</div></div>
+      <div class="stat"><div class="k">Retorno médio</div><div class="v num" id="tStatAvg">—</div></div>
+    </div>
+
+    <div class="card">
+      <p class="card-label">Nº de trades para média (N)</p>
+      <div class="config-row">
+        <input type="number" id="tradeN" min="1" step="1" style="width:100px;">
+        <span style="color:var(--text-dim); font-size:12px;">últimos trades</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toggle-row">
+        <p class="card-label" style="margin:0;">Saque automático ao atingir meta</p>
+        <label class="switch"><input type="checkbox" id="tradeSaqueToggle"><span class="slider"></span></label>
+      </div>
+      <div id="saqueConfigRows" style="margin-top:10px; display:none;">
+        <div class="config-row" style="margin-bottom:8px;">
+          <span style="color:var(--text-dim); font-size:12px;">Meta de lucro (%)</span>
+          <input type="number" id="tradeMetaPct" step="0.1" style="width:90px;">
+        </div>
+        <div class="config-row">
+          <span style="color:var(--text-dim); font-size:12px;">% do lucro sacado</span>
+          <input type="number" id="tradeSaquePct" step="1" style="width:90px;">
+        </div>
+      </div>
+    </div>
+
+    <div id="tradeMilestonesList"></div>
+
+    <p class="legend-note">
+      <b>Composta</b> aplica o retorno médio (%) por trade de forma composta. <b>Linear</b> soma o ganho médio ($) por trade, sem compor.
+      Marcos já alcançados (verde) ficam travados no valor real; os demais (laranja) são projetados a partir do saldo e da média atuais.
+    </p>
+  </section>
+
+  <div class="card" style="display:flex; gap:8px;">
+    <button class="add-btn" id="exportBtn" style="margin-bottom:0;">↓ Exportar dados</button>
+    <button class="add-btn" id="importBtn" style="margin-bottom:0;">↑ Importar dados</button>
+  </div>
+  <input type="file" id="importInput" accept="application/json,.json" style="display:none;">
+
+  <div class="reset-row"><button id="resetBtn">Apagar dados deste perfil</button></div>
+</main>
+
+<script>
+(function(){
+  "use strict";
+
+  var PROFILES_KEY = "xauledger_profiles";
+  var ACTIVE_PROFILE_KEY = "xauledger_active_profile";
+  var THEME_KEY = "xauledger_theme"; // global, not per-profile
+
+  var STORAGE_KEYS = {}; // rebuilt per active profile by setStorageKeys()
+  var ACTIVE_PROFILE_ID = null;
+
+  function setStorageKeys(profileId) {
+    var p = "xauledger_p" + profileId + "_";
+    STORAGE_KEYS = {
+      balance: p + "balance", entries: p + "entries", n: p + "noverrides",
+      lot: p + "lot", trades: p + "trades", tradeCfg: p + "tradecfg"
+    };
+  }
+
+  var MILESTONES = [];
+  for (var m = 5; m <= 250; m += 5) MILESTONES.push(m);
+  MILESTONES.push(252);
+
+  function loadJSON(key, fallback) {
+    try {
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (e) { return fallback; }
+  }
+  function saveJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
+  }
+
+  // ---- profiles ----
+  function loadProfiles() { return loadJSON(PROFILES_KEY, []); }
+  function saveProfiles(list) { saveJSON(PROFILES_KEY, list); }
+  function getActiveProfileId() { return loadJSON(ACTIVE_PROFILE_KEY, null); }
+  function setActiveProfileId(id) { saveJSON(ACTIVE_PROFILE_KEY, id); }
+
+  var state = { balance: 100, entries: [], nOverrides: {} };
+  var lotState = { riskPct: 1, points: 50, pointValue: 100 };
+  var tradesState = [];
+  var tradeCfg = { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 };
+  var TRADE_MILESTONES = [5,10,15,20,25,30,40,50,75,100,150,200,300,400,500,600,700,800,900,1000];
+
+
+  function fmtMoney(v) {
+    if (v === null || v === undefined || isNaN(v)) return "—";
+    var sign = v < 0 ? "-" : "";
+    return sign + "$" + Math.abs(v).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+  function fmtPct(v) {
+    if (v === null || v === undefined || isNaN(v)) return "—";
+    return (v*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
+  }
+  function todayStr() {
+    var d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+  function addDays(dateStr, n) {
+    var d = new Date(dateStr + "T00:00:00");
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0,10);
+  }
+  function fmtDateShort(dateStr) {
+    var p = dateStr.split("-");
+    return p[2] + "/" + p[1];
+  }
+
+  // ---- derived computation ----
+  function computeEntries() {
+    var out = [];
+    var prevFinal = state.balance;
+    for (var i = 0; i < state.entries.length; i++) {
+      var e = state.entries[i];
+      var asian = Number(e.asian) || 0;
+      var ny = Number(e.ny) || 0;
+      var saldoInicial = prevFinal;
+      var asianPct = saldoInicial !== 0 ? asian / saldoInicial : 0;
+      var saldoAposAsian = saldoInicial + asian;
+      var nyPct = saldoAposAsian !== 0 ? ny / saldoAposAsian : 0;
+      var saldoFinal = saldoAposAsian + ny;
+      var retornoLiquido = saldoInicial !== 0 ? (saldoFinal - saldoInicial) / saldoInicial : 0;
+      out.push({
+        day: i+1, date: e.date, asian: asian, ny: ny,
+        saldoInicial: saldoInicial, asianPct: asianPct,
+        saldoAposAsian: saldoAposAsian, nyPct: nyPct,
+        saldoFinal: saldoFinal, retornoLiquido: retornoLiquido
+      });
+      prevFinal = saldoFinal;
+    }
+    return out;
+  }
+
+  function computeMilestones(computed) {
+    var lastDay = computed.length;
+    var saldoBase = lastDay === 0 ? state.balance : computed[lastDay-1].saldoFinal;
+    return MILESTONES.map(function(m) {
+      var n = state.nOverrides[m] || m;
+      if (m <= lastDay) {
+        var saldo = computed[m-1].saldoFinal;
+        return { marco: m, n: n, situacao: "Real", saldo: saldo, avg: null,
+                 ganhoDiario: null, retornoAcum: state.balance ? (saldo - state.balance)/state.balance : null };
+      }
+      if (lastDay === 0) {
+        return { marco: m, n: n, situacao: "Projetado", saldo: null, avg: null, ganhoDiario: null, retornoAcum: null };
+      }
+      var windowStart = Math.max(0, lastDay - n);
+      var slice = computed.slice(windowStart, lastDay);
+      var avg = slice.reduce(function(s,x){ return s + x.retornoLiquido; }, 0) / slice.length;
+      var saldo = saldoBase * Math.pow(1 + avg, m - lastDay);
+      var ganhoDiario = saldo * avg;
+      var retornoAcum = state.balance ? (saldo - state.balance) / state.balance : null;
+      return { marco: m, n: n, situacao: "Projetado", saldo: saldo, avg: avg, ganhoDiario: ganhoDiario, retornoAcum: retornoAcum };
+    });
+  }
+
+  // ---- rendering: Diário ----
+  var daysList = document.getElementById("daysList");
+  var diarioEmpty = document.getElementById("diarioEmpty");
+  var initialBalanceInput = document.getElementById("initialBalance");
+
+  function renderDiario() {
+    var computed = computeEntries();
+    daysList.innerHTML = "";
+    diarioEmpty.style.display = computed.length ? "none" : "block";
+
+    computed.slice().reverse().forEach(function(row) {
+      var idx = row.day - 1;
+      var card = document.createElement("div");
+      card.className = "card day-card";
+
+      var netClass = row.retornoLiquido > 0 ? "net-pos" : (row.retornoLiquido < 0 ? "net-neg" : "net-zero");
+
+      card.innerHTML =
+        '<div class="day-head">' +
+          '<span class="day-n">DIA ' + row.day + '</span>' +
+          '<input type="date" value="' + row.date + '" data-idx="' + idx + '" class="date-input">' +
+        '</div>' +
+        '<div class="flow">Saldo inicial <span class="amt num">' + fmtMoney(row.saldoInicial) + '</span></div>' +
+        '<div class="sess-grid">' +
+          '<div class="sess">' +
+            '<div class="lbl">SESSÃO ASIÁTICA</div>' +
+            '<div class="in-row"><span>$</span><input type="number" step="0.01" inputmode="decimal" value="' + row.asian + '" data-idx="' + idx + '" class="asian-input"></div>' +
+            '<div class="pct num">' + fmtPct(row.asianPct) + '</div>' +
+          '</div>' +
+          '<div class="sess">' +
+            '<div class="lbl">SESSÃO NEW YORK</div>' +
+            '<div class="in-row"><span>$</span><input type="number" step="0.01" inputmode="decimal" value="' + row.ny + '" data-idx="' + idx + '" class="ny-input"></div>' +
+            '<div class="pct num">' + fmtPct(row.nyPct) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="day-footer">' +
+          '<span>Saldo final <b class="num">' + fmtMoney(row.saldoFinal) + '</b></span>' +
+          '<span class="net-badge ' + netClass + ' num">' + (row.retornoLiquido>=0?'+':'') + fmtPct(row.retornoLiquido) + '</span>' +
+        '</div>' +
+        '<button class="del-btn" data-idx="' + idx + '" style="position:absolute; top:10px; right:78px;">✕</button>';
+
+      daysList.appendChild(card);
+    });
+
+    daysList.querySelectorAll(".asian-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        state.entries[+inp.dataset.idx].asian = inp.value;
+        persistAndRender();
+      });
+    });
+    daysList.querySelectorAll(".ny-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        state.entries[+inp.dataset.idx].ny = inp.value;
+        persistAndRender();
+      });
+    });
+    daysList.querySelectorAll(".date-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        state.entries[+inp.dataset.idx].date = inp.value;
+        persistAndRender();
+      });
+    });
+    daysList.querySelectorAll(".del-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        state.entries.splice(+btn.dataset.idx, 1);
+        persistAndRender();
+      });
+    });
+  }
+
+  document.getElementById("addDayBtn").addEventListener("click", function(){
+    var lastDate = state.entries.length ? state.entries[state.entries.length-1].date : addDays(todayStr(), -1);
+    state.entries.push({ date: addDays(lastDate, 1), asian: 0, ny: 0 });
+    persistAndRender();
+  });
+
+  initialBalanceInput.addEventListener("change", function(){
+    state.balance = Number(initialBalanceInput.value) || 0;
+    persistAndRender();
+  });
+
+  // ---- rendering: Projeção ----
+  var milestonesList = document.getElementById("milestonesList");
+  var chartCtx = document.getElementById("chart").getContext("2d");
+  var chartInstance = null;
+
+  function renderProjecao() {
+    var computed = computeEntries();
+    var milestones = computeMilestones(computed);
+    var lastDay = computed.length;
+    var current = lastDay ? computed[lastDay-1].saldoFinal : state.balance;
+
+    document.getElementById("statInitial").textContent = fmtMoney(state.balance);
+    document.getElementById("statLastDay").textContent = lastDay ? String(lastDay) : "—";
+    document.getElementById("statCurrent").textContent = fmtMoney(current);
+
+    milestonesList.innerHTML = "";
+    milestones.forEach(function(row) {
+      var card = document.createElement("div");
+      card.className = "card milestone-card";
+      var isReal = row.situacao === "Real";
+      card.innerHTML =
+        '<div class="ms-day"><div class="d">' + row.marco + '</div><div class="lbl">DIAS</div></div>' +
+        '<div class="ms-body">' +
+          '<div class="ms-top">' +
+            '<span class="ms-saldo num">' + fmtMoney(row.saldo) + '</span>' +
+            '<span class="badge ' + (isReal ? 'badge-real' : 'badge-proj') + '">' + row.situacao + '</span>' +
+          '</div>' +
+          '<div class="ms-meta">' +
+            (row.avg !== null ? '<span>média <b class="num">' + fmtPct(row.avg) + '</b>/dia</span>' : '') +
+            (row.ganhoDiario !== null ? '<span>≈ <b class="num">' + fmtMoney(row.ganhoDiario) + '</b>/dia</span>' : '') +
+            (!isReal ? '<span>N <input type="number" class="n-input" min="1" value="' + row.n + '" data-marco="' + row.marco + '"></span>' : '') +
+          '</div>' +
+        '</div>';
+      milestonesList.appendChild(card);
+    });
+
+    milestonesList.querySelectorAll(".n-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var v = Math.max(1, parseInt(inp.value) || 1);
+        state.nOverrides[inp.dataset.marco] = v;
+        saveJSON(STORAGE_KEYS.n, state.nOverrides);
+        renderProjecao();
+      });
+    });
+
+    renderChart(milestones, lastDay);
+  }
+
+  function renderChart(milestones, lastDay) {
+    if (typeof Chart === "undefined") return;
+    var labels = milestones.map(function(r){ return r.marco + "d"; });
+    var realData = milestones.map(function(r){ return r.marco <= lastDay ? r.saldo : null; });
+    var projData = milestones.map(function(r, i){
+      if (r.marco > lastDay) {
+        if (i > 0 && milestones[i-1].marco <= lastDay) return realData[i-1] === null ? r.saldo : realData[i-1];
+        return r.saldo;
+      }
+      return null;
+    });
+    // ensure continuity: set the transition point in projData to the last real value
+    var lastRealIdx = -1;
+    milestones.forEach(function(r,i){ if (r.marco <= lastDay) lastRealIdx = i; });
+    if (lastRealIdx >= 0 && lastRealIdx+1 < milestones.length) {
+      projData[lastRealIdx] = realData[lastRealIdx];
+    }
+
+    var styles = getComputedStyle(document.documentElement);
+    var teal = styles.getPropertyValue('--teal').trim();
+    var slate = styles.getPropertyValue('--slate').trim();
+    var textDim = styles.getPropertyValue('--text-dim').trim();
+    var border = styles.getPropertyValue('--border').trim();
+
+    if (chartInstance) chartInstance.destroy();
+    chartInstance = new Chart(chartCtx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          { label: 'Real', data: realData, borderColor: teal, backgroundColor: teal, pointRadius: 2, tension: 0.25, spanGaps: false },
+          { label: 'Projetado', data: projData, borderColor: slate, backgroundColor: slate, pointRadius: 0, borderDash: [5,4], tension: 0.25, spanGaps: false }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: textDim, font: { family: 'Space Grotesk', size: 11 } } } },
+        scales: {
+          x: { ticks: { color: textDim, font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }, grid: { color: border } },
+          y: { ticks: { color: textDim, font: { size: 9 } }, grid: { color: border } }
+        }
+      }
+    });
+  }
+
+  function persistAndRender() {
+    saveJSON(STORAGE_KEYS.balance, state.balance);
+    saveJSON(STORAGE_KEYS.entries, state.entries);
+    renderDiario();
+    renderProjecao();
+  }
+
+  // ---- rendering: Lote (calculadora de tamanho de posição) ----
+  var lotBalanceInput = document.getElementById("lotBalance");
+  var lotRiskPctInput = document.getElementById("lotRiskPct");
+  var lotPointsInput = document.getElementById("lotPoints");
+  var lotPointValueInput = document.getElementById("lotPointValue");
+  var lotResultEl = document.getElementById("lotResult");
+  var lotRiskAmountEl = document.getElementById("lotRiskAmount");
+
+  function renderLote() {
+    var computed = computeEntries();
+    var current = computed.length ? computed[computed.length-1].saldoFinal : state.balance;
+    lotBalanceInput.value = current.toFixed(2);
+    lotRiskPctInput.value = lotState.riskPct;
+    lotPointsInput.value = lotState.points;
+    lotPointValueInput.value = lotState.pointValue;
+    computeLot();
+  }
+
+  function computeLot() {
+    var balance = Number(lotBalanceInput.value) || 0;
+    var riskPct = Number(lotRiskPctInput.value) || 0;
+    var points = Number(lotPointsInput.value) || 0;
+    var pointValue = Number(lotPointValueInput.value) || 0;
+    var riskAmount = balance * (riskPct / 100);
+    var denom = points * pointValue;
+    if (denom > 0) {
+      var lot = riskAmount / denom;
+      lotResultEl.textContent = lot.toFixed(2) + " lotes";
+      lotRiskAmountEl.textContent = "Risco se o stop for atingido: " + fmtMoney(riskAmount);
+    } else {
+      lotResultEl.textContent = "—";
+      lotRiskAmountEl.textContent = "Informe os pontos até o stop e o valor por ponto";
+    }
+  }
+
+  [lotBalanceInput, lotRiskPctInput, lotPointsInput, lotPointValueInput].forEach(function(inp){
+    inp.addEventListener("input", function(){
+      lotState.riskPct = Number(lotRiskPctInput.value) || 0;
+      lotState.points = Number(lotPointsInput.value) || 0;
+      lotState.pointValue = Number(lotPointValueInput.value) || 0;
+      saveJSON(STORAGE_KEYS.lot, lotState);
+      computeLot();
+    });
+  });
+
+  // ---- Por Trade: registro e projeção ----
+  var tradeResultInput = document.getElementById("tradeResultInput");
+  var recentTradesEl = document.getElementById("recentTrades");
+  var tradeNInput = document.getElementById("tradeN");
+  var tradeSaqueToggle = document.getElementById("tradeSaqueToggle");
+  var saqueConfigRows = document.getElementById("saqueConfigRows");
+  var tradeMetaPctInput = document.getElementById("tradeMetaPct");
+  var tradeSaquePctInput = document.getElementById("tradeSaquePct");
+  var tradeMilestonesList = document.getElementById("tradeMilestonesList");
+
+  tradeNInput.value = tradeCfg.n;
+  tradeSaqueToggle.checked = !!tradeCfg.saqueOn;
+  tradeMetaPctInput.value = tradeCfg.metaPct;
+  tradeSaquePctInput.value = tradeCfg.saquePct;
+  saqueConfigRows.style.display = tradeCfg.saqueOn ? "block" : "none";
+
+  function computeTradeBalances() {
+    var bal = state.balance;
+    var out = [];
+    tradesState.forEach(function(t){
+      var r = Number(t.result) || 0;
+      var before = bal;
+      bal += r;
+      out.push({ result: r, before: before, after: bal });
+    });
+    return out;
+  }
+
+  function simulateTradeMilestones() {
+    var real = computeTradeBalances();
+    var lastReal = real.length;
+    var saldoAtual = lastReal ? real[lastReal-1].after : state.balance;
+    var n = Math.max(1, tradeCfg.n || 1);
+
+    var avgPct = null, avgDollar = null;
+    if (lastReal > 0) {
+      var start = Math.max(0, lastReal - n);
+      var slice = real.slice(start);
+      var sumPct = 0, sumDollar = 0;
+      slice.forEach(function(t){
+        sumPct += t.before !== 0 ? t.result / t.before : 0;
+        sumDollar += t.result;
+      });
+      avgPct = sumPct / slice.length;
+      avgDollar = sumDollar / slice.length;
+    }
+
+    var maxM = TRADE_MILESTONES[TRADE_MILESTONES.length - 1];
+    var sim = {};
+    var saldoC = saldoAtual, baseC = saldoAtual, saqueAcumC = 0;
+    var saldoL = saldoAtual, baseL = saldoAtual, saqueAcumL = 0;
+    var saqueOn = tradeCfg.saqueOn;
+    var metaPct = (tradeCfg.metaPct || 0) / 100;
+    var saquePct = (tradeCfg.saquePct || 0) / 100;
+
+    for (var i = lastReal + 1; i <= maxM; i++) {
+      var growthC = saldoC * (1 + (avgPct || 0));
+      if (saqueOn && baseC > 0 && growthC >= baseC * (1 + metaPct)) {
+        var lucroC = growthC - baseC;
+        var saqueC = lucroC * saquePct;
+        saldoC = growthC - saqueC;
+        baseC = saldoC;
+        saqueAcumC += saqueC;
+      } else {
+        saldoC = growthC;
+      }
+      var growthL = saldoL + (avgDollar || 0);
+      if (saqueOn && baseL > 0 && growthL >= baseL * (1 + metaPct)) {
+        var lucroL = growthL - baseL;
+        var saqueL = lucroL * saquePct;
+        saldoL = growthL - saqueL;
+        baseL = saldoL;
+        saqueAcumL += saqueL;
+      } else {
+        saldoL = growthL;
+      }
+      sim[i] = { saldoC: saldoC, saldoL: saldoL, saqueAcumC: saqueAcumC, saqueAcumL: saqueAcumL };
+    }
+
+    return TRADE_MILESTONES.map(function(m){
+      if (m <= lastReal) {
+        return { m: m, situacao: "Real", saldoC: real[m-1].after, saldoL: real[m-1].after, saqueAcumC: 0, saqueAcumL: 0 };
+      }
+      var s = sim[m];
+      return { m: m, situacao: "Projetado", saldoC: s.saldoC, saldoL: s.saldoL, saqueAcumC: s.saqueAcumC, saqueAcumL: s.saqueAcumL };
+    }).map(function(row){
+      return Object.assign(row, { avgPct: avgPct, avgDollar: avgDollar, lastReal: lastReal, saldoAtual: saldoAtual });
+    });
+  }
+
+  function renderRecentTrades() {
+    recentTradesEl.innerHTML = "";
+    var recent = tradesState.slice(-8);
+    var offset = tradesState.length - recent.length;
+    recent.forEach(function(t, idx){
+      var realIdx = offset + idx;
+      var chip = document.createElement("div");
+      chip.className = "recent-chip num";
+      var v = Number(t.result) || 0;
+      chip.innerHTML = "#" + (realIdx+1) + " " + (v>=0?"+":"") + fmtMoney(v) +
+        ' <button class="x" data-idx="' + realIdx + '">✕</button>';
+      recentTradesEl.appendChild(chip);
+    });
+    recentTradesEl.querySelectorAll(".x").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        tradesState.splice(+btn.dataset.idx, 1);
+        saveJSON(STORAGE_KEYS.trades, tradesState);
+        renderTrade();
+      });
+    });
+  }
+
+  function renderTrade() {
+    var real = computeTradeBalances();
+    var lastReal = real.length;
+    var saldoAtual = lastReal ? real[lastReal-1].after : state.balance;
+
+    document.getElementById("tStatCount").textContent = String(lastReal);
+    document.getElementById("tStatBalance").textContent = fmtMoney(saldoAtual);
+
+    renderRecentTrades();
+
+    var milestones = simulateTradeMilestones();
+    var avgPct = milestones.length ? milestones[0].avgPct : null;
+    document.getElementById("tStatAvg").textContent = avgPct !== null ? fmtPct(avgPct) + "/trade" : "—";
+
+    tradeMilestonesList.innerHTML = "";
+    milestones.forEach(function(row){
+      var isReal = row.situacao === "Real";
+      var card = document.createElement("div");
+      card.className = "card milestone-card";
+      card.innerHTML =
+        '<div class="ms-day"><div class="d">' + row.m + '</div><div class="lbl">TRADES</div></div>' +
+        '<div class="ms2-body">' +
+          '<div class="ms-top" style="margin-bottom:6px;">' +
+            '<span style="font-size:11px; color:var(--text-dim); font-weight:700;">' + (isReal ? "RESULTADO REAL" : "PROJEÇÃO") + '</span>' +
+            '<span class="badge ' + (isReal ? "badge-real" : "badge-proj") + '">' + row.situacao + '</span>' +
+          '</div>' +
+          '<div class="ms2-row"><span class="tag">Composta</span><span class="val num">' + fmtMoney(row.saldoC) + '</span></div>' +
+          (row.saqueAcumC > 0 ? '<div class="ms2-row"><span class="tag">Sacado</span><span class="val num" style="font-size:11px; color:var(--teal);">' + fmtMoney(row.saqueAcumC) + '</span></div>' : '') +
+          '<div class="ms2-divider"></div>' +
+          '<div class="ms2-row"><span class="tag">Linear</span><span class="val num">' + fmtMoney(row.saldoL) + '</span></div>' +
+          (row.saqueAcumL > 0 ? '<div class="ms2-row"><span class="tag">Sacado</span><span class="val num" style="font-size:11px; color:var(--teal);">' + fmtMoney(row.saqueAcumL) + '</span></div>' : '') +
+        '</div>';
+      tradeMilestonesList.appendChild(card);
+    });
+  }
+
+  document.getElementById("tradeAddBtn").addEventListener("click", function(){
+    var v = Number(tradeResultInput.value);
+    if (isNaN(v)) return;
+    tradesState.push({ result: v });
+    saveJSON(STORAGE_KEYS.trades, tradesState);
+    tradeResultInput.value = "";
+    renderTrade();
+  });
+  tradeResultInput.addEventListener("keydown", function(e){
+    if (e.key === "Enter") document.getElementById("tradeAddBtn").click();
+  });
+
+  tradeNInput.addEventListener("change", function(){
+    tradeCfg.n = Math.max(1, parseInt(tradeNInput.value) || 1);
+    saveJSON(STORAGE_KEYS.tradeCfg, tradeCfg);
+    renderTrade();
+  });
+  tradeSaqueToggle.addEventListener("change", function(){
+    tradeCfg.saqueOn = tradeSaqueToggle.checked;
+    saqueConfigRows.style.display = tradeCfg.saqueOn ? "block" : "none";
+    saveJSON(STORAGE_KEYS.tradeCfg, tradeCfg);
+    renderTrade();
+  });
+  [tradeMetaPctInput, tradeSaquePctInput].forEach(function(inp){
+    inp.addEventListener("change", function(){
+      tradeCfg.metaPct = Number(tradeMetaPctInput.value) || 0;
+      tradeCfg.saquePct = Number(tradeSaquePctInput.value) || 0;
+      saveJSON(STORAGE_KEYS.tradeCfg, tradeCfg);
+      renderTrade();
+    });
+  });
+
+  // ---- export / import ----
+  var downloadsCap = null;
+  var exportBtn = document.getElementById("exportBtn");
+  (function initDownloads(){
+    try {
+      if (window.claude && typeof window.claude.use === "function") {
+        window.claude.use("downloads").then(function(cap){ downloadsCap = cap; });
+      }
+    } catch (e) {}
+  })();
+
+  exportBtn.addEventListener("click", async function(){
+    var profiles = loadProfiles();
+    var activeP = profiles.filter(function(p){ return p.id === ACTIVE_PROFILE_ID; })[0];
+    var profileName = activeP ? activeP.name : "perfil";
+    var payload = JSON.stringify({
+      profileName: profileName,
+      balance: state.balance,
+      entries: state.entries,
+      nOverrides: state.nOverrides,
+      lot: lotState,
+      trades: tradesState,
+      tradeCfg: tradeCfg,
+      exportedAt: new Date().toISOString()
+    }, null, 2);
+    var safeName = profileName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "perfil";
+    if (!downloadsCap) {
+      try {
+        var blob = new Blob([payload], { type: "application/json" });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = "ledger-xau-" + safeName + ".json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+      } catch (e) {
+        alert("Não foi possível exportar o arquivo neste navegador.");
+      }
+      return;
+    }
+    try {
+      await downloadsCap.save({ filename: "ledger-xau-" + safeName + ".json", data: payload });
+    } catch (e) {
+      if (e && e.code !== "declined") alert("Não foi possível salvar o arquivo agora.");
+    }
+  });
+
+  document.getElementById("importBtn").addEventListener("click", function(){
+    document.getElementById("importInput").click();
+  });
+
+  document.getElementById("importInput").addEventListener("change", function(e){
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      try {
+        var data = JSON.parse(ev.target.result);
+        if (!confirm("Importar este arquivo" + (data.profileName ? ' ("' + data.profileName + '")' : "") + " vai substituir os dados salvos agora NESTE perfil. Continuar?")) return;
+        state.balance = Number(data.balance) || 100;
+        state.entries = Array.isArray(data.entries) ? data.entries : [];
+        state.nOverrides = (data.nOverrides && typeof data.nOverrides === "object") ? data.nOverrides : {};
+        if (data.lot && typeof data.lot === "object") {
+          lotState.riskPct = Number(data.lot.riskPct) || lotState.riskPct;
+          lotState.points = Number(data.lot.points) || lotState.points;
+          lotState.pointValue = Number(data.lot.pointValue) || lotState.pointValue;
+          saveJSON(STORAGE_KEYS.lot, lotState);
+        }
+        if (Array.isArray(data.trades)) {
+          tradesState = data.trades;
+          saveJSON(STORAGE_KEYS.trades, tradesState);
+        }
+        if (data.tradeCfg && typeof data.tradeCfg === "object") {
+          tradeCfg.n = Number(data.tradeCfg.n) || tradeCfg.n;
+          tradeCfg.saqueOn = !!data.tradeCfg.saqueOn;
+          tradeCfg.metaPct = Number(data.tradeCfg.metaPct) || tradeCfg.metaPct;
+          tradeCfg.saquePct = Number(data.tradeCfg.saquePct) || tradeCfg.saquePct;
+          saveJSON(STORAGE_KEYS.tradeCfg, tradeCfg);
+          tradeNInput.value = tradeCfg.n;
+          tradeSaqueToggle.checked = tradeCfg.saqueOn;
+          saqueConfigRows.style.display = tradeCfg.saqueOn ? "block" : "none";
+          tradeMetaPctInput.value = tradeCfg.metaPct;
+          tradeSaquePctInput.value = tradeCfg.saquePct;
+        }
+        initialBalanceInput.value = state.balance;
+        saveJSON(STORAGE_KEYS.n, state.nOverrides);
+        persistAndRender();
+        renderLote();
+        renderTrade();
+        alert("Dados importados com sucesso.");
+      } catch (err) {
+        alert("Não foi possível ler esse arquivo. Verifique se é um backup exportado por este app.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  });
+
+  // ---- tabs ----
+  document.querySelectorAll("nav.tabs button").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      document.querySelectorAll("nav.tabs button").forEach(function(b){ b.classList.remove("active"); });
+      document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("active"); });
+      btn.classList.add("active");
+      document.getElementById("view-" + btn.dataset.view).classList.add("active");
+      if (btn.dataset.view === "projecao") renderProjecao();
+      if (btn.dataset.view === "lote") renderLote();
+      if (btn.dataset.view === "trade") renderTrade();
+    });
+  });
+
+  // ---- theme ----
+  var themeBtn = document.getElementById("themeBtn");
+  var savedTheme = loadJSON(THEME_KEY, null);
+  if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+  themeBtn.addEventListener("click", function(){
+    var current = document.documentElement.getAttribute("data-theme");
+    var next = current === "dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    saveJSON(THEME_KEY, next);
+    renderProjecao();
+  });
+
+  // ---- reset (dados do perfil atual) ----
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if (!confirm("Apagar todos os dados lançados NESTE perfil e voltar ao saldo padrão?")) return;
+    state = { balance: 100, entries: [], nOverrides: {} };
+    tradesState = [];
+    tradeCfg = { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 };
+    initialBalanceInput.value = 100;
+    tradeNInput.value = tradeCfg.n;
+    tradeSaqueToggle.checked = false;
+    saqueConfigRows.style.display = "none";
+    tradeMetaPctInput.value = tradeCfg.metaPct;
+    tradeSaquePctInput.value = tradeCfg.saquePct;
+    saveJSON(STORAGE_KEYS.balance, state.balance);
+    saveJSON(STORAGE_KEYS.entries, state.entries);
+    saveJSON(STORAGE_KEYS.n, state.nOverrides);
+    saveJSON(STORAGE_KEYS.trades, tradesState);
+    saveJSON(STORAGE_KEYS.tradeCfg, tradeCfg);
+    renderDiario();
+    renderProjecao();
+    renderTrade();
+  });
+
+  // ---- profiles: gate / switcher / creation / deletion ----
+  var profileOverlay = document.getElementById("profileOverlay");
+  var profileList = document.getElementById("profileList");
+  var newProfileNameInput = document.getElementById("newProfileName");
+  var createProfileBtn = document.getElementById("createProfileBtn");
+  var closeProfileOverlay = document.getElementById("closeProfileOverlay");
+  var profileChipBtn = document.getElementById("profileChipBtn");
+  var profileHeadTitle = document.getElementById("profileHeadTitle");
+
+  function genProfileId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function renderProfileList() {
+    var profiles = loadProfiles();
+    profileList.innerHTML = "";
+    profiles.forEach(function(p){
+      var item = document.createElement("div");
+      item.className = "profile-item" + (p.id === ACTIVE_PROFILE_ID ? " active" : "");
+      item.innerHTML =
+        '<div><div class="name">' + p.name + '</div>' +
+        '<div class="tag">' + (p.id === ACTIVE_PROFILE_ID ? "perfil atual" : "toque para entrar") + '</div></div>' +
+        '<button class="del" data-id="' + p.id + '" title="Apagar perfil">🗑</button>';
+      item.addEventListener("click", function(e){
+        if (e.target.closest(".del")) return;
+        switchToProfile(p.id);
+      });
+      profileList.appendChild(item);
+    });
+    profileList.querySelectorAll(".del").forEach(function(btn){
+      btn.addEventListener("click", function(e){
+        e.stopPropagation();
+        deleteProfile(btn.dataset.id);
+      });
+    });
+  }
+
+  function openProfileOverlay(forced) {
+    renderProfileList();
+    profileHeadTitle.textContent = forced ? "Crie seu primeiro perfil" : "Trocar de perfil";
+    closeProfileOverlay.style.display = forced ? "none" : "block";
+    newProfileNameInput.value = "";
+    profileOverlay.classList.add("show");
+  }
+  function hideProfileOverlay() {
+    profileOverlay.classList.remove("show");
+  }
+
+  function wipeProfileStorage(id) {
+    setStorageKeys(id);
+    ["balance","entries","n","lot","trades","tradeCfg"].forEach(function(k){
+      try { localStorage.removeItem(STORAGE_KEYS[k]); } catch (e) {}
+    });
+  }
+
+  function switchToProfile(id) {
+    ACTIVE_PROFILE_ID = id;
+    setActiveProfileId(id);
+    setStorageKeys(id);
+    state = {
+      balance: loadJSON(STORAGE_KEYS.balance, 100),
+      entries: loadJSON(STORAGE_KEYS.entries, []),
+      nOverrides: loadJSON(STORAGE_KEYS.n, {})
+    };
+    lotState = loadJSON(STORAGE_KEYS.lot, { riskPct: 1, points: 50, pointValue: 100 });
+    tradesState = loadJSON(STORAGE_KEYS.trades, []);
+    tradeCfg = loadJSON(STORAGE_KEYS.tradeCfg, { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 });
+
+    initialBalanceInput.value = state.balance;
+    tradeNInput.value = tradeCfg.n;
+    tradeSaqueToggle.checked = !!tradeCfg.saqueOn;
+    saqueConfigRows.style.display = tradeCfg.saqueOn ? "block" : "none";
+    tradeMetaPctInput.value = tradeCfg.metaPct;
+    tradeSaquePctInput.value = tradeCfg.saquePct;
+
+    var profiles = loadProfiles();
+    var active = profiles.filter(function(p){ return p.id === id; })[0];
+    profileChipBtn.textContent = active ? active.name : "Trocar perfil";
+
+    renderDiario();
+    renderProjecao();
+    renderLote();
+    renderTrade();
+    hideProfileOverlay();
+  }
+
+  function createProfile() {
+    var name = newProfileNameInput.value.trim();
+    if (!name) { newProfileNameInput.focus(); return; }
+    var profiles = loadProfiles();
+    var p = { id: genProfileId(), name: name, createdAt: new Date().toISOString() };
+    profiles.push(p);
+    saveProfiles(profiles);
+    switchToProfile(p.id);
+  }
+
+  function deleteProfile(id) {
+    var profiles = loadProfiles();
+    var p = profiles.filter(function(x){ return x.id === id; })[0];
+    if (!p) return;
+    if (!confirm('Apagar o perfil "' + p.name + '" e todos os dados lançados nele? Essa ação não pode ser desfeita.')) return;
+    profiles = profiles.filter(function(x){ return x.id !== id; });
+    saveProfiles(profiles);
+    wipeProfileStorage(id);
+    if (id === ACTIVE_PROFILE_ID) {
+      ACTIVE_PROFILE_ID = null;
+      saveJSON(ACTIVE_PROFILE_KEY, null);
+      if (profiles.length) {
+        switchToProfile(profiles[0].id);
+      } else {
+        openProfileOverlay(true);
+      }
+    } else {
+      renderProfileList();
+    }
+  }
+
+  createProfileBtn.addEventListener("click", createProfile);
+  newProfileNameInput.addEventListener("keydown", function(e){
+    if (e.key === "Enter") createProfile();
+  });
+  closeProfileOverlay.addEventListener("click", hideProfileOverlay);
+  profileChipBtn.addEventListener("click", function(){ openProfileOverlay(false); });
+
+  // ---- boot ----
+  (function boot(){
+    var profiles = loadProfiles();
+    var activeId = getActiveProfileId();
+    var activeExists = activeId && profiles.some(function(p){ return p.id === activeId; });
+    if (activeExists) {
+      switchToProfile(activeId);
+    } else if (profiles.length) {
+      switchToProfile(profiles[0].id);
+    } else {
+      openProfileOverlay(true);
+    }
+  })();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function(){
+      navigator.serviceWorker.register("sw.js").catch(function(){});
+    });
+  }
+})();
+</script>
+</body>
+</html>

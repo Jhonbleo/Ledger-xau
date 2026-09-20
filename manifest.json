@@ -1,0 +1,17 @@
+{
+  "name": "Ledger XAU — Controle de Trading",
+  "short_name": "Ledger XAU",
+  "description": "Controle diário de resultados e projeção de trading XAUUSD, com sessões Asiática e New York.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#12151A",
+  "theme_color": "#12151A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
