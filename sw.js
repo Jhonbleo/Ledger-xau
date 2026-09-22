@@ -1,4 +1,4 @@
-const CACHE_NAME = "ledger-xau-v1";
+const CACHE_NAME = "ledger-fx-v2";
 const APP_SHELL = ["./index.html", "./manifest.json"];
 
 self.addEventListener("install", (event) => {
@@ -17,20 +17,35 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// HTML e manifest: sempre tenta a rede primeiro (pega a versão mais nova),
+// só usa o cache se estiver offline. Demais arquivos (ícones): cache primeiro.
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      const fetchPromise = fetch(event.request)
+
+  const isAppShell = event.request.mode === "navigate" ||
+    event.request.url.endsWith("manifest.json") ||
+    event.request.url.endsWith("index.html");
+
+  if (isAppShell) {
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          if (response && response.status === 200) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          }
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
           return response;
         })
-        .catch(() => cached);
-      return cached || fetchPromise;
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      return cached || fetch(event.request).then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      });
     })
   );
 });
