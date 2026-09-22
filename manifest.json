@@ -1,7 +1,7 @@
 {
-  "name": "Ledger XAU — Controle de Trading",
-  "short_name": "Ledger XAU",
-  "description": "Controle diário de resultados e projeção de trading XAUUSD, com sessões Asiática e New York.",
+  "name": "Ledger FX — Controle de Trading",
+  "short_name": "Ledger FX",
+  "description": "Controle diário de resultados e projeção de trading para pares forex e commodities, com sessões Asiática e New York, múltiplas moedas e perfis por conta.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

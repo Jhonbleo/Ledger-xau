@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ledger XAU — Controle de Trading</title>
+<title>Ledger FX — Controle de Trading</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#12151A">
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -302,6 +302,21 @@
     background: var(--gold); color: var(--bg); border: none; border-radius: 10px;
     padding: 0 16px; font-family: inherit; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap;
   }
+  .profile-new-form { display: flex; flex-direction: column; gap: 10px; }
+  .profile-new-form input[type="text"], .profile-new-form input[type="number"] {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: inherit; font-size: 14px; padding: 11px 12px; width: 100%;
+  }
+  .pf-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pf-label { font-size: 11px; color: var(--text-dim); margin: 0 0 4px; }
+  select {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    color: var(--text); font-family: inherit; font-size: 13.5px; padding: 11px 10px; width: 100%;
+  }
+  .profile-new-form > button {
+    background: var(--gold); color: var(--bg); border: none; border-radius: 10px;
+    padding: 12px; font-family: inherit; font-weight: 700; font-size: 14px; cursor: pointer; margin-top: 4px;
+  }
   .profile-close {
     display: block; width: 100%; text-align: center; margin-top: 16px;
     background: none; border: none; color: var(--text-dim); font-size: 12.5px;
@@ -319,8 +334,26 @@
       <p class="profile-sub">Cada perfil guarda seus próprios dados, separados dos outros — ex: contas diferentes na corretora.</p>
     </div>
     <div id="profileList" class="profile-list"></div>
-    <div class="profile-new">
-      <input type="text" id="newProfileName" placeholder="Ex: Vantage - Conta Cent" maxlength="60">
+    <div class="profile-new-form">
+      <input type="text" id="newProfileName" placeholder="Nome do perfil (ex: Vantage - Conta Cent)" maxlength="60">
+      <div class="pf-row2">
+        <select id="newProfileCurrency">
+          <option value="USD">US$ — Dólar</option>
+          <option value="EUR">€ — Euro</option>
+          <option value="BRL">R$ — Real</option>
+          <option value="GBP">£ — Libra</option>
+        </select>
+        <select id="newProfileType">
+          <option value="Standard">Standard</option>
+          <option value="Cent">Cent</option>
+          <option value="Demo">Demo</option>
+        </select>
+      </div>
+      <div id="newProfileDepositWrap">
+        <label id="newProfileDepositLabel" class="pf-label">Saldo inicial</label>
+        <input type="number" id="newProfileDeposit" step="0.01" placeholder="100">
+        <p id="centPreview" class="profile-sub" style="display:none; text-align:left; margin-top:4px;"></p>
+      </div>
       <button id="createProfileBtn">+ Criar perfil</button>
     </div>
     <button id="closeProfileOverlay" class="profile-close" style="display:none;">Cancelar</button>
@@ -331,7 +364,7 @@
   <div class="brand">
     <span class="mark">◆</span>
     <div>
-      <h1>Ledger XAU</h1>
+      <h1>Ledger FX</h1>
       <button class="sub profile-chip" id="profileChipBtn">Trocar perfil</button>
     </div>
   </div>
@@ -351,7 +384,7 @@
     <div class="card">
       <p class="card-label">Saldo inicial da conta</p>
       <div class="config-row">
-        <span style="color:var(--text-dim); font-size:13px;">US$</span>
+        <span id="initialBalanceCurrencySymbol" style="color:var(--text-dim); font-size:13px;">US$</span>
         <input type="number" id="initialBalance" step="0.01" inputmode="decimal">
       </div>
     </div>
@@ -382,43 +415,94 @@
 
   <section id="view-lote" class="view">
     <div class="card">
-      <p class="card-label">Saldo considerado</p>
-      <div class="config-row">
-        <span style="color:var(--text-dim); font-size:13px;">US$</span>
-        <input type="number" id="lotBalance" step="0.01" inputmode="decimal">
-      </div>
+      <p class="card-label">Par / instrumento</p>
+      <select id="lotPair"></select>
     </div>
-    <div class="card">
-      <p class="card-label">Risco alvo (% do saldo)</p>
-      <div class="config-row">
-        <input type="number" id="lotRiskPct" step="0.01" inputmode="decimal" style="width:100px;">
-        <span style="color:var(--text-dim); font-size:13px;">%</span>
-      </div>
+
+    <div class="card" id="lotCustomRow" style="display:none;">
+      <p class="card-label">Moeda de cotação (par personalizado)</p>
+      <input type="text" id="lotCustomQuote" maxlength="4" style="width:100px; text-transform:uppercase;" placeholder="USD">
     </div>
+
     <div class="card">
-      <p class="card-label">Distância até o stop (pontos)</p>
-      <div class="config-row">
-        <input type="number" id="lotPoints" step="0.1" inputmode="decimal" style="width:100px;">
-        <span style="color:var(--text-dim); font-size:13px;">pts</span>
+      <div class="config-row" style="margin-bottom:8px;">
+        <span style="color:var(--text-dim); font-size:12px;">Tamanho do contrato</span>
+        <input type="number" id="lotContractSize" step="1" style="width:110px;">
       </div>
-    </div>
-    <div class="card">
-      <p class="card-label">Valor por ponto em 1.00 lote (US$)</p>
       <div class="config-row">
-        <input type="number" id="lotPointValue" step="0.01" inputmode="decimal" style="width:100px;">
-        <span style="color:var(--text-dim); font-size:13px;">US$</span>
+        <span style="color:var(--text-dim); font-size:12px;">Tamanho do tick</span>
+        <input type="number" id="lotTickSize" step="0.00001" style="width:110px;">
       </div>
     </div>
 
-    <div class="card" style="text-align:center;">
-      <p class="card-label">Lote sugerido</p>
-      <div id="lotResult" class="num" style="font-size:32px; font-weight:700; color:var(--gold);">—</div>
-      <div id="lotRiskAmount" class="num" style="font-size:12.5px; color:var(--text-dim); margin-top:6px;">—</div>
+    <div class="card" id="lotExchangeRow" style="display:none;">
+      <p class="card-label">Taxa de câmbio atual</p>
+      <div class="config-row">
+        <span id="lotExchangeLabel" style="color:var(--text-dim); font-size:12px;">1 USD = ? </span>
+        <input type="number" id="lotExchangeRate" step="0.0001" style="width:110px;">
+      </div>
+      <p class="legend-note" style="padding-top:6px;">A moeda de cotação do par é diferente da moeda da sua conta — informe a taxa atual para um cálculo preciso.</p>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="k">Valor por pip (1.00 lote)</div><div class="v num" id="lotValuePip" style="font-size:14px;">—</div></div>
+      <div class="stat"><div class="k">Valor por tick (1.00 lote)</div><div class="v num" id="lotValueTick" style="font-size:14px;">—</div></div>
+      <div class="stat"><div class="k">Unidade</div><div class="v" id="lotUnitLabel" style="font-size:14px;">Pips</div></div>
+    </div>
+    <div class="card">
+      <div class="toggle-row">
+        <p class="card-label" style="margin:0;">Medir movimento em ticks (em vez de pips)</p>
+        <label class="switch"><input type="checkbox" id="lotUnitToggle"><span class="slider"></span></label>
+      </div>
+      <p class="legend-note" style="padding-top:6px;">Padrão: 1 pip = 10 ticks (cotação de 5 dígitos). Ajuste o tamanho do tick acima se sua corretora for diferente.</p>
+    </div>
+    <div id="lotCentNote" class="legend-note" style="display:none; padding:0 4px 8px;"></div>
+
+    <div class="card">
+      <p class="card-label" style="margin-bottom:10px;">Lote pelo risco</p>
+      <div class="config-row" style="margin-bottom:8px;">
+        <span style="color:var(--text-dim); font-size:12px;">Saldo considerado</span>
+        <input type="number" id="lotBalance" step="0.01" inputmode="decimal" style="width:120px;">
+      </div>
+      <div class="config-row" style="margin-bottom:8px;">
+        <span style="color:var(--text-dim); font-size:12px;">Risco alvo (%)</span>
+        <input type="number" id="lotRiskPct" step="0.01" inputmode="decimal" style="width:90px;">
+      </div>
+      <div class="config-row" style="margin-bottom:12px;">
+        <span style="color:var(--text-dim); font-size:12px;" id="lotDistanceLabel">Distância até o stop (pips)</span>
+        <input type="number" id="lotDistance" step="0.1" inputmode="decimal" style="width:90px;">
+      </div>
+      <div style="text-align:center; padding-top:6px; border-top:1px solid var(--border);">
+        <div id="lotResult" class="num" style="font-size:28px; font-weight:700; color:var(--gold);">—</div>
+        <div id="lotRiskAmount" class="num" style="font-size:12px; color:var(--text-dim); margin-top:4px;">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p class="card-label" style="margin-bottom:10px;">Simular resultado de uma operação</p>
+      <div class="config-row" style="margin-bottom:8px;">
+        <span style="color:var(--text-dim); font-size:12px;">Lote</span>
+        <input type="number" id="lotSimLot" step="0.01" inputmode="decimal" style="width:90px;">
+      </div>
+      <div class="config-row" style="margin-bottom:12px;">
+        <span style="color:var(--text-dim); font-size:12px;" id="lotSimMoveLabel">Movimento do preço (pips)</span>
+        <input type="number" id="lotSimMove" step="0.1" inputmode="decimal" style="width:90px;">
+      </div>
+      <div style="display:flex; gap:8px; padding-top:6px; border-top:1px solid var(--border);">
+        <div style="flex:1; text-align:center;">
+          <div class="card-label" style="margin-bottom:4px;">Se a favor</div>
+          <div id="lotSimGain" class="num" style="font-size:18px; font-weight:700; color:var(--teal);">—</div>
+        </div>
+        <div style="flex:1; text-align:center;">
+          <div class="card-label" style="margin-bottom:4px;">Se contra</div>
+          <div id="lotSimLoss" class="num" style="font-size:18px; font-weight:700; color:var(--danger);">—</div>
+        </div>
+      </div>
     </div>
 
     <p class="legend-note">
-      Fórmula: lote = (saldo × risco%) ÷ (pontos × valor por ponto). O valor por ponto padrão do XAUUSD costuma ser
-      US$100 por lote de 100 oz — confira a especificação de contrato na sua corretora antes de operar.
+      Fórmula: lote = (saldo × risco%) ÷ (distância × valor por unidade). O "valor por unidade" já considera o tamanho do
+      contrato do par escolhido e, se necessário, a conversão de moeda e o ajuste de conta Cent.
     </p>
   </section>
 
@@ -526,10 +610,37 @@
   var TRADE_MILESTONES = [5,10,15,20,25,30,40,50,75,100,150,200,300,400,500,600,700,800,900,1000];
 
 
+  var CURRENCIES = {
+    USD: { symbol: "US$", locale: "en-US" },
+    EUR: { symbol: "€", locale: "de-DE" },
+    BRL: { symbol: "R$", locale: "pt-BR" },
+    GBP: { symbol: "£", locale: "en-GB" }
+  };
+  var ACTIVE_CURRENCY = "USD";
+  var ACTIVE_ACCOUNT_TYPE = "Standard";
+
+  var PAIRS = [
+    { code: "EURUSD", quote: "USD", tick: 0.00001, contract: 100000 },
+    { code: "GBPUSD", quote: "USD", tick: 0.00001, contract: 100000 },
+    { code: "AUDUSD", quote: "USD", tick: 0.00001, contract: 100000 },
+    { code: "NZDUSD", quote: "USD", tick: 0.00001, contract: 100000 },
+    { code: "USDJPY", quote: "JPY", tick: 0.001, contract: 100000 },
+    { code: "USDCHF", quote: "CHF", tick: 0.00001, contract: 100000 },
+    { code: "USDCAD", quote: "CAD", tick: 0.00001, contract: 100000 },
+    { code: "EURGBP", quote: "GBP", tick: 0.00001, contract: 100000 },
+    { code: "EURJPY", quote: "JPY", tick: 0.001, contract: 100000 },
+    { code: "GBPJPY", quote: "JPY", tick: 0.001, contract: 100000 },
+    { code: "XAUUSD (Ouro)", quote: "USD", tick: 0.01, contract: 100 },
+    { code: "XAGUSD (Prata)", quote: "USD", tick: 0.001, contract: 5000 },
+    { code: "WTIUSD (Petróleo)", quote: "USD", tick: 0.01, contract: 1000 },
+    { code: "Personalizado", quote: "USD", tick: 0.0001, contract: 100000 }
+  ];
+
   function fmtMoney(v) {
     if (v === null || v === undefined || isNaN(v)) return "—";
+    var meta = CURRENCIES[ACTIVE_CURRENCY] || CURRENCIES.USD;
     var sign = v < 0 ? "-" : "";
-    return sign + "$" + Math.abs(v).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+    return sign + meta.symbol + Math.abs(v).toLocaleString(meta.locale, {minimumFractionDigits:2, maximumFractionDigits:2});
   }
   function fmtPct(v) {
     if (v === null || v === undefined || isNaN(v)) return "—";
@@ -779,49 +890,153 @@
     renderProjecao();
   }
 
-  // ---- rendering: Lote (calculadora de tamanho de posição) ----
+  // ---- rendering: Lote (calculadora de tamanho de posição por par) ----
+  var lotPairSelect = document.getElementById("lotPair");
+  var lotCustomRow = document.getElementById("lotCustomRow");
+  var lotCustomQuoteInput = document.getElementById("lotCustomQuote");
+  var lotContractSizeInput = document.getElementById("lotContractSize");
+  var lotTickSizeInput = document.getElementById("lotTickSize");
+  var lotExchangeRow = document.getElementById("lotExchangeRow");
+  var lotExchangeLabel = document.getElementById("lotExchangeLabel");
+  var lotExchangeRateInput = document.getElementById("lotExchangeRate");
+  var lotValuePipEl = document.getElementById("lotValuePip");
+  var lotValueTickEl = document.getElementById("lotValueTick");
+  var lotUnitLabelEl = document.getElementById("lotUnitLabel");
+  var lotUnitToggle = document.getElementById("lotUnitToggle");
+  var lotCentNoteEl = document.getElementById("lotCentNote");
+  var lotDistanceLabel = document.getElementById("lotDistanceLabel");
   var lotBalanceInput = document.getElementById("lotBalance");
   var lotRiskPctInput = document.getElementById("lotRiskPct");
-  var lotPointsInput = document.getElementById("lotPoints");
-  var lotPointValueInput = document.getElementById("lotPointValue");
+  var lotDistanceInput = document.getElementById("lotDistance");
   var lotResultEl = document.getElementById("lotResult");
   var lotRiskAmountEl = document.getElementById("lotRiskAmount");
+  var lotSimLotInput = document.getElementById("lotSimLot");
+  var lotSimMoveInput = document.getElementById("lotSimMove");
+  var lotSimMoveLabel = document.getElementById("lotSimMoveLabel");
+  var lotSimGainEl = document.getElementById("lotSimGain");
+  var lotSimLossEl = document.getElementById("lotSimLoss");
+
+  PAIRS.forEach(function(p, idx){
+    var opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = p.code;
+    lotPairSelect.appendChild(opt);
+  });
+
+  function currentPair() {
+    var idx = Number(lotPairSelect.value) || 0;
+    return PAIRS[idx] || PAIRS[0];
+  }
 
   function renderLote() {
     var computed = computeEntries();
     var current = computed.length ? computed[computed.length-1].saldoFinal : state.balance;
+
+    lotPairSelect.value = lotState.pairIdx || 0;
+    var pair = currentPair();
+    var isCustom = pair.code === "Personalizado";
+    lotCustomRow.style.display = isCustom ? "block" : "none";
+    lotCustomQuoteInput.value = lotState.customQuote || pair.quote;
+
+    lotContractSizeInput.value = (lotState.customContract !== null && lotState.customContract !== undefined) ? lotState.customContract : pair.contract;
+    lotTickSizeInput.value = (lotState.customTick !== null && lotState.customTick !== undefined) ? lotState.customTick : pair.tick;
+
+    var quote = isCustom ? (lotState.customQuote || "USD").toUpperCase() : pair.quote;
+    var needsExchange = quote !== ACTIVE_CURRENCY;
+    lotExchangeRow.style.display = needsExchange ? "block" : "none";
+    lotExchangeLabel.textContent = "1 " + quote + " = ? " + ACTIVE_CURRENCY;
+    lotExchangeRateInput.value = lotState.exchangeRate || 1;
+
+    lotUnitToggle.checked = lotState.unit === "ticks";
+    lotUnitLabelEl.textContent = lotState.unit === "ticks" ? "Ticks" : "Pips";
+    lotDistanceLabel.textContent = "Distância até o stop (" + (lotState.unit === "ticks" ? "ticks" : "pips") + ")";
+    lotSimMoveLabel.textContent = "Movimento do preço (" + (lotState.unit === "ticks" ? "ticks" : "pips") + ")";
+
+    lotCentNoteEl.style.display = ACTIVE_ACCOUNT_TYPE === "Cent" ? "block" : "none";
+    lotCentNoteEl.textContent = ACTIVE_ACCOUNT_TYPE === "Cent"
+      ? "Conta Cent: o tamanho do contrato usado no cálculo foi dividido por 100 automaticamente."
+      : "";
+
     lotBalanceInput.value = current.toFixed(2);
     lotRiskPctInput.value = lotState.riskPct;
-    lotPointsInput.value = lotState.points;
-    lotPointValueInput.value = lotState.pointValue;
+    lotDistanceInput.value = lotState.distance;
+    lotSimLotInput.value = lotState.simLot;
+    lotSimMoveInput.value = lotState.simMove;
+
     computeLot();
   }
 
   function computeLot() {
+    var contractSize = Number(lotContractSizeInput.value) || 0;
+    if (ACTIVE_ACCOUNT_TYPE === "Cent") contractSize = contractSize / 100;
+    var tickSize = Number(lotTickSizeInput.value) || 0;
+    var exchangeRate = lotExchangeRow.style.display === "block" ? (Number(lotExchangeRateInput.value) || 0) : 1;
+
+    var valuePerTick = tickSize * contractSize * exchangeRate;
+    var valuePerPip = valuePerTick * 10;
+    var unit = lotUnitToggle.checked ? "ticks" : "pips";
+    var unitValue = unit === "ticks" ? valuePerTick : valuePerPip;
+
+    lotValueTickEl.textContent = valuePerTick > 0 ? fmtMoney(valuePerTick) : "—";
+    lotValuePipEl.textContent = valuePerPip > 0 ? fmtMoney(valuePerPip) : "—";
+
+    // painel 1: lote pelo risco
     var balance = Number(lotBalanceInput.value) || 0;
     var riskPct = Number(lotRiskPctInput.value) || 0;
-    var points = Number(lotPointsInput.value) || 0;
-    var pointValue = Number(lotPointValueInput.value) || 0;
+    var distance = Number(lotDistanceInput.value) || 0;
     var riskAmount = balance * (riskPct / 100);
-    var denom = points * pointValue;
+    var denom = distance * unitValue;
     if (denom > 0) {
       var lot = riskAmount / denom;
       lotResultEl.textContent = lot.toFixed(2) + " lotes";
       lotRiskAmountEl.textContent = "Risco se o stop for atingido: " + fmtMoney(riskAmount);
     } else {
       lotResultEl.textContent = "—";
-      lotRiskAmountEl.textContent = "Informe os pontos até o stop e o valor por ponto";
+      lotRiskAmountEl.textContent = "Informe a distância até o stop";
+    }
+
+    // painel 2: simular resultado
+    var simLot = Number(lotSimLotInput.value) || 0;
+    var simMove = Number(lotSimMoveInput.value) || 0;
+    if (unitValue > 0 && simLot > 0 && simMove > 0) {
+      var resultado = simLot * simMove * unitValue;
+      lotSimGainEl.textContent = "+" + fmtMoney(resultado);
+      lotSimLossEl.textContent = "-" + fmtMoney(resultado);
+    } else {
+      lotSimGainEl.textContent = "—";
+      lotSimLossEl.textContent = "—";
     }
   }
 
-  [lotBalanceInput, lotRiskPctInput, lotPointsInput, lotPointValueInput].forEach(function(inp){
-    inp.addEventListener("input", function(){
-      lotState.riskPct = Number(lotRiskPctInput.value) || 0;
-      lotState.points = Number(lotPointsInput.value) || 0;
-      lotState.pointValue = Number(lotPointValueInput.value) || 0;
-      saveJSON(STORAGE_KEYS.lot, lotState);
-      computeLot();
-    });
+  function saveLotState() {
+    lotState.pairIdx = Number(lotPairSelect.value) || 0;
+    lotState.riskPct = Number(lotRiskPctInput.value) || 0;
+    lotState.distance = Number(lotDistanceInput.value) || 0;
+    lotState.unit = lotUnitToggle.checked ? "ticks" : "pips";
+    lotState.simLot = Number(lotSimLotInput.value) || 0;
+    lotState.simMove = Number(lotSimMoveInput.value) || 0;
+    lotState.customQuote = (lotCustomQuoteInput.value || "USD").toUpperCase();
+    var pair = currentPair();
+    var contractVal = Number(lotContractSizeInput.value) || 0;
+    var tickVal = Number(lotTickSizeInput.value) || 0;
+    lotState.customContract = (contractVal !== pair.contract) ? contractVal : null;
+    lotState.customTick = (tickVal !== pair.tick) ? tickVal : null;
+    lotState.exchangeRate = Number(lotExchangeRateInput.value) || 1;
+    saveJSON(STORAGE_KEYS.lot, lotState);
+  }
+
+  lotPairSelect.addEventListener("change", function(){
+    lotState.pairIdx = Number(lotPairSelect.value) || 0;
+    lotState.customContract = null;
+    lotState.customTick = null;
+    saveLotState();
+    renderLote();
+  });
+  lotUnitToggle.addEventListener("change", function(){ saveLotState(); renderLote(); });
+  lotCustomQuoteInput.addEventListener("input", function(){ saveLotState(); renderLote(); });
+  [lotContractSizeInput, lotTickSizeInput, lotExchangeRateInput,
+   lotBalanceInput, lotRiskPctInput, lotDistanceInput, lotSimLotInput, lotSimMoveInput].forEach(function(inp){
+    inp.addEventListener("input", function(){ saveLotState(); computeLot(); });
   });
 
   // ---- Por Trade: registro e projeção ----
@@ -1155,6 +1370,11 @@
   var profileOverlay = document.getElementById("profileOverlay");
   var profileList = document.getElementById("profileList");
   var newProfileNameInput = document.getElementById("newProfileName");
+  var newProfileCurrencySelect = document.getElementById("newProfileCurrency");
+  var newProfileTypeSelect = document.getElementById("newProfileType");
+  var newProfileDepositInput = document.getElementById("newProfileDeposit");
+  var newProfileDepositLabel = document.getElementById("newProfileDepositLabel");
+  var centPreview = document.getElementById("centPreview");
   var createProfileBtn = document.getElementById("createProfileBtn");
   var closeProfileOverlay = document.getElementById("closeProfileOverlay");
   var profileChipBtn = document.getElementById("profileChipBtn");
@@ -1169,10 +1389,12 @@
     profileList.innerHTML = "";
     profiles.forEach(function(p){
       var item = document.createElement("div");
+      var cur = CURRENCIES[p.currency] ? p.currency : "USD";
+      var type = p.accountType || "Standard";
       item.className = "profile-item" + (p.id === ACTIVE_PROFILE_ID ? " active" : "");
       item.innerHTML =
         '<div><div class="name">' + p.name + '</div>' +
-        '<div class="tag">' + (p.id === ACTIVE_PROFILE_ID ? "perfil atual" : "toque para entrar") + '</div></div>' +
+        '<div class="tag">' + cur + ' · ' + type + (p.id === ACTIVE_PROFILE_ID ? " · perfil atual" : "") + '</div></div>' +
         '<button class="del" data-id="' + p.id + '" title="Apagar perfil">🗑</button>';
       item.addEventListener("click", function(e){
         if (e.target.closest(".del")) return;
@@ -1193,6 +1415,10 @@
     profileHeadTitle.textContent = forced ? "Crie seu primeiro perfil" : "Trocar de perfil";
     closeProfileOverlay.style.display = forced ? "none" : "block";
     newProfileNameInput.value = "";
+    newProfileCurrencySelect.value = "USD";
+    newProfileTypeSelect.value = "Standard";
+    newProfileDepositInput.value = "";
+    updateCentPreview();
     profileOverlay.classList.add("show");
   }
   function hideProfileOverlay() {
@@ -1210,25 +1436,30 @@
     ACTIVE_PROFILE_ID = id;
     setActiveProfileId(id);
     setStorageKeys(id);
+
+    var profiles = loadProfiles();
+    var active = profiles.filter(function(p){ return p.id === id; })[0];
+    ACTIVE_CURRENCY = (active && CURRENCIES[active.currency]) ? active.currency : "USD";
+    ACTIVE_ACCOUNT_TYPE = (active && active.accountType) || "Standard";
+
     state = {
       balance: loadJSON(STORAGE_KEYS.balance, 100),
       entries: loadJSON(STORAGE_KEYS.entries, []),
       nOverrides: loadJSON(STORAGE_KEYS.n, {})
     };
-    lotState = loadJSON(STORAGE_KEYS.lot, { riskPct: 1, points: 50, pointValue: 100 });
+    lotState = loadJSON(STORAGE_KEYS.lot, { pairIdx: 0, riskPct: 1, distance: 50, unit: "pips", simLot: 0.10, simMove: 50, customTick: null, customContract: null, customQuote: "USD", exchangeRate: 1 });
     tradesState = loadJSON(STORAGE_KEYS.trades, []);
     tradeCfg = loadJSON(STORAGE_KEYS.tradeCfg, { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 });
 
     initialBalanceInput.value = state.balance;
+    document.getElementById("initialBalanceCurrencySymbol").textContent = (CURRENCIES[ACTIVE_CURRENCY] || CURRENCIES.USD).symbol;
     tradeNInput.value = tradeCfg.n;
     tradeSaqueToggle.checked = !!tradeCfg.saqueOn;
     saqueConfigRows.style.display = tradeCfg.saqueOn ? "block" : "none";
     tradeMetaPctInput.value = tradeCfg.metaPct;
     tradeSaquePctInput.value = tradeCfg.saquePct;
 
-    var profiles = loadProfiles();
-    var active = profiles.filter(function(p){ return p.id === id; })[0];
-    profileChipBtn.textContent = active ? active.name : "Trocar perfil";
+    profileChipBtn.textContent = active ? (active.name + " · " + ACTIVE_CURRENCY) : "Trocar perfil";
 
     renderDiario();
     renderProjecao();
@@ -1237,13 +1468,41 @@
     hideProfileOverlay();
   }
 
+  function updateCentPreview() {
+    var type = newProfileTypeSelect.value;
+    var dep = Number(newProfileDepositInput.value) || 0;
+    var cur = newProfileCurrencySelect.value;
+    var symbol = (CURRENCIES[cur] || CURRENCIES.USD).symbol;
+    if (type === "Cent") {
+      newProfileDepositLabel.textContent = "Valor do depósito (" + cur + ")";
+      centPreview.style.display = "block";
+      centPreview.textContent = "Conta Cent: saldo inicial será " + symbol + (dep*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + " (depósito × 100)";
+    } else {
+      newProfileDepositLabel.textContent = "Saldo inicial (" + cur + ")";
+      centPreview.style.display = "none";
+    }
+  }
+
   function createProfile() {
     var name = newProfileNameInput.value.trim();
     if (!name) { newProfileNameInput.focus(); return; }
+    var currency = newProfileCurrencySelect.value;
+    var accountType = newProfileTypeSelect.value;
+    var deposit = Number(newProfileDepositInput.value) || 0;
+    var initialBalance = accountType === "Cent" ? deposit * 100 : deposit;
+
     var profiles = loadProfiles();
-    var p = { id: genProfileId(), name: name, createdAt: new Date().toISOString() };
+    var p = {
+      id: genProfileId(), name: name, currency: currency, accountType: accountType,
+      createdAt: new Date().toISOString()
+    };
     profiles.push(p);
     saveProfiles(profiles);
+
+    // grava o saldo inicial já calculado antes de trocar para o novo perfil
+    setStorageKeys(p.id);
+    saveJSON(STORAGE_KEYS.balance, initialBalance);
+
     switchToProfile(p.id);
   }
 
@@ -1272,6 +1531,9 @@
   newProfileNameInput.addEventListener("keydown", function(e){
     if (e.key === "Enter") createProfile();
   });
+  newProfileTypeSelect.addEventListener("change", updateCentPreview);
+  newProfileCurrencySelect.addEventListener("change", updateCentPreview);
+  newProfileDepositInput.addEventListener("input", updateCentPreview);
   closeProfileOverlay.addEventListener("click", hideProfileOverlay);
   profileChipBtn.addEventListener("click", function(){ openProfileOverlay(false); });
 
