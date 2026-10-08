@@ -214,6 +214,8 @@
   .badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
   .badge-real { background: var(--teal-soft); color: var(--teal); }
   .badge-proj { background: var(--slate-soft); color: var(--slate); }
+  .brl { display:block; font-size:10.5px; font-weight:500; color:var(--text-dim); font-family:'Space Grotesk', sans-serif; margin-top:1px; }
+  .badge-out { background: var(--surface-2); color: var(--text-dim); }
   .ms-meta { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--text-dim); flex-wrap: wrap; }
   .ms-meta b { color: var(--text); font-weight: 600; }
   .n-input {
@@ -263,6 +265,20 @@
   .ms2-row .tag { font-size: 10px; color: var(--text-dim); width: 62px; flex-shrink: 0; }
   .ms2-row .val { font-size: 14px; font-weight: 700; }
   .ms2-divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  .tier-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .tier-row input {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12.5px;
+    padding: 8px 6px; text-align: center; width: 0; flex: 1 1 0;
+  }
+  .tier-row .tier-pct { color: var(--gold); font-weight: 700; }
+  .tier-row .sep { color: var(--text-dim); font-size: 11px; flex: 0 0 auto; }
+  .tier-row .tier-del {
+    background: none; border: none; color: var(--text-dim); font-size: 15px; cursor: pointer;
+    padding: 4px 2px; flex: 0 0 auto;
+  }
+  .tier-row .tier-del:hover { color: var(--danger); }
 
   .profile-chip {
     background: none; border: none; padding: 0; margin: 0;
@@ -389,7 +405,25 @@
       </div>
     </div>
 
-    <button class="add-btn" id="addDayBtn">+ Adicionar dia</button>
+    <div class="card" id="fxCard" style="display:none;">
+      <p class="card-label">Cotação para Real (R$)</p>
+      <div class="config-row">
+        <span id="fxLabel" style="color:var(--text-dim); font-size:13px;">1 USD = R$</span>
+        <input type="number" id="fxRate" step="0.0001" inputmode="decimal" style="width:110px;">
+      </div>
+      <div class="toggle-row" style="margin-top:10px;">
+        <span style="color:var(--text-dim); font-size:12px;">Mostrar valores também em R$</span>
+        <label class="switch"><input type="checkbox" id="fxShowToggle"><span class="slider"></span></label>
+      </div>
+      <button class="add-btn" id="fxRefreshBtn" style="margin:10px 0 0;">↻ Atualizar cotação</button>
+      <p class="legend-note" id="fxStatus" style="padding-top:6px;"></p>
+    </div>
+
+    <div style="display:flex; gap:8px;">
+      <button class="add-btn" id="addDayBtn" style="flex:2;">+ Adicionar dia</button>
+      <button class="add-btn" id="addSaqueBtn" style="flex:1;">− Saque</button>
+    </div>
+    <p id="totalSacado" class="legend-note" style="padding:0 4px 10px; margin-top:-4px;"></p>
 
     <div id="daysList"></div>
     <div id="diarioEmpty" class="empty" style="display:none;">Nenhum dia lançado ainda. Toque em "Adicionar dia" para começar.</div>
@@ -403,6 +437,27 @@
     </div>
 
     <div class="chart-wrap"><canvas id="chart"></canvas></div>
+
+    <div class="card">
+      <div class="toggle-row">
+        <p class="card-label" style="margin:0;">Metas por faixa de saldo</p>
+        <label class="switch"><input type="checkbox" id="tierEnableToggle"><span class="slider"></span></label>
+      </div>
+      <div id="tierConfigBody" style="display:none; margin-top:12px;">
+        <p class="pf-label">Quando o saldo cair numa faixa, a % dela deve:</p>
+        <select id="tierModeSelect" style="margin-bottom:12px;">
+          <option value="teto">Servir de teto (nunca passa da meta)</option>
+          <option value="substituir">Substituir a média real</option>
+        </select>
+        <div id="tierRows"></div>
+        <button class="add-btn" id="tierAddBtn" style="margin: 10px 0 0;">+ Adicionar faixa</button>
+      </div>
+      <p class="legend-note" style="padding-top:8px;">
+        Define a % de meta por faixa de saldo em vez de usar sempre a mesma média — evita que a projeção exploda
+        para valores irreais. Acima da última faixa cadastrada, a projeção simplesmente para.
+        Vale para esta aba e para a aba Por Trade.
+      </p>
+    </div>
 
     <div id="milestonesList"></div>
 
@@ -547,11 +602,20 @@
       </div>
     </div>
 
+    <div class="card">
+      <div class="toggle-row">
+        <p class="card-label" style="margin:0;">Metas por faixa de saldo</p>
+        <label class="switch"><input type="checkbox" id="tradeTierEnableToggle"><span class="slider"></span></label>
+      </div>
+      <p id="tradeTierSummary" class="legend-note" style="padding-top:6px;">As faixas são editadas na aba Projeção.</p>
+    </div>
+
     <div id="tradeMilestonesList"></div>
 
     <p class="legend-note">
       <b>Composta</b> aplica o retorno médio (%) por trade de forma composta. <b>Linear</b> soma o ganho médio ($) por trade, sem compor.
       Marcos já alcançados (verde) ficam travados no valor real; os demais (laranja) são projetados a partir do saldo e da média atuais.
+      Com metas por faixa ativadas, a projeção para de avançar acima da última faixa cadastrada.
     </p>
   </section>
 
@@ -579,7 +643,7 @@
     var p = "xauledger_p" + profileId + "_";
     STORAGE_KEYS = {
       balance: p + "balance", entries: p + "entries", n: p + "noverrides",
-      lot: p + "lot", trades: p + "trades", tradeCfg: p + "tradecfg"
+      lot: p + "lot", trades: p + "trades", tradeCfg: p + "tradecfg", tiers: p + "tiers"
     };
   }
 
@@ -608,6 +672,42 @@
   var tradesState = [];
   var tradeCfg = { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 };
   var TRADE_MILESTONES = [5,10,15,20,25,30,40,50,75,100,150,200,300,400,500,600,700,800,900,1000];
+  var tierState = { enabled: false, mode: "teto", tiers: [] };
+
+  // Dado um saldo e uma taxa "natural" (média real), devolve a taxa efetiva a usar.
+  // Retorna null para sinalizar "parar de projetar" (saldo passou da última faixa).
+  function getTierRate(balance, naturalRate) {
+    if (!tierState.enabled || !tierState.tiers.length) return naturalRate;
+    var tiers = tierState.tiers.slice().sort(function(a,b){ return a.min - b.min; });
+    var tier = null;
+    for (var i = 0; i < tiers.length; i++) {
+      if (balance >= tiers[i].min && balance <= tiers[i].max) { tier = tiers[i]; break; }
+    }
+    if (tier) {
+      var tierRate = (tier.pct || 0) / 100;
+      return tierState.mode === "substituir" ? tierRate : Math.min(naturalRate, tierRate);
+    }
+    var lastTier = tiers[tiers.length - 1];
+    if (lastTier && balance > lastTier.max) return null; // acima da última faixa: parar
+    return naturalRate; // abaixo da primeira faixa cadastrada: usa a taxa natural
+  }
+
+  // Mesma ideia, mas para o método Linear (em $, não em %).
+  function getTierDollarRate(balance, naturalDollar) {
+    if (!tierState.enabled || !tierState.tiers.length) return naturalDollar;
+    var tiers = tierState.tiers.slice().sort(function(a,b){ return a.min - b.min; });
+    var tier = null;
+    for (var i = 0; i < tiers.length; i++) {
+      if (balance >= tiers[i].min && balance <= tiers[i].max) { tier = tiers[i]; break; }
+    }
+    if (tier) {
+      var tierDollar = balance * ((tier.pct || 0) / 100);
+      return tierState.mode === "substituir" ? tierDollar : Math.min(naturalDollar, tierDollar);
+    }
+    var lastTier = tiers[tiers.length - 1];
+    if (lastTier && balance > lastTier.max) return null;
+    return naturalDollar;
+  }
 
 
   var CURRENCIES = {
@@ -642,6 +742,80 @@
     var sign = v < 0 ? "-" : "";
     return sign + meta.symbol + Math.abs(v).toLocaleString(meta.locale, {minimumFractionDigits:2, maximumFractionDigits:2});
   }
+
+  // ---- conversão para Real (R$) ----
+  var FX_KEY = "xauledger_fx";
+  var fx = loadJSON(FX_KEY, { rates: {}, manual: {}, show: true, updatedAt: null });
+  var fxError = false;
+
+  function brlRate() {
+    if (ACTIVE_CURRENCY === "BRL") return 0;
+    return Number(fx.rates[ACTIVE_CURRENCY]) || 0;
+  }
+  // valor formatado + equivalente em R$ logo abaixo (HTML)
+  function moneyH(v) {
+    var s = fmtMoney(v);
+    var r = brlRate();
+    if (!r || fx.show === false || v === null || v === undefined || isNaN(v)) return s;
+    var real = v * r / (ACTIVE_ACCOUNT_TYPE === "Cent" ? 100 : 1);
+    var sign = real < 0 ? "-" : "";
+    return s + '<span class="brl">≈ ' + sign + 'R$ ' +
+      Math.abs(real).toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}) + '</span>';
+  }
+  function saveFx() { saveJSON(FX_KEY, fx); }
+
+  function renderFx() {
+    var card = document.getElementById("fxCard");
+    if (!card) return;
+    if (ACTIVE_CURRENCY === "BRL") { card.style.display = "none"; return; }
+    card.style.display = "block";
+    document.getElementById("fxLabel").textContent = "1 " + ACTIVE_CURRENCY + " = R$";
+    document.getElementById("fxRate").value = fx.rates[ACTIVE_CURRENCY] || "";
+    document.getElementById("fxShowToggle").checked = fx.show !== false;
+    var st = document.getElementById("fxStatus");
+    var txt;
+    if (fx.manual[ACTIVE_CURRENCY]) txt = "Cotação manual (fixada por você).";
+    else if (fx.updatedAt) {
+      var d = new Date(fx.updatedAt);
+      txt = "Atualizada automaticamente em " + d.toLocaleDateString("pt-BR") + " " +
+        d.toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"}) + ".";
+    } else txt = "Sem cotação ainda — digite abaixo ou toque em atualizar.";
+    if (fxError) txt += " Não consegui buscar agora (sem internet ou ambiente bloqueado) — use o campo manual.";
+    st.textContent = txt;
+  }
+
+  function renderAllMoney() {
+    renderDiario(); renderProjecao(); renderTrade(); renderLote(); renderFx();
+  }
+
+  async function fetchFx(force) {
+    var rates = null;
+    try {
+      var r = await fetch("https://economia.awesomeapi.com.br/json/last/USD-BRL,EUR-BRL,GBP-BRL");
+      var j = await r.json();
+      rates = { USD: Number(j.USDBRL.bid), EUR: Number(j.EURBRL.bid), GBP: Number(j.GBPBRL.bid) };
+    } catch (e1) {
+      try {
+        rates = {};
+        var cs = ["USD", "EUR", "GBP"];
+        for (var i = 0; i < cs.length; i++) {
+          var r2 = await fetch("https://api.frankfurter.app/latest?from=" + cs[i] + "&to=BRL");
+          var j2 = await r2.json();
+          rates[cs[i]] = Number(j2.rates.BRL);
+        }
+      } catch (e2) { rates = null; }
+    }
+    if (!rates || !rates.USD) { fxError = true; renderFx(); return false; }
+    fxError = false;
+    if (force) fx.manual = {};
+    ["USD", "EUR", "GBP"].forEach(function(c){
+      if (rates[c] && (force || !fx.manual[c])) fx.rates[c] = rates[c];
+    });
+    fx.updatedAt = Date.now();
+    saveFx();
+    renderAllMoney();
+    return true;
+  }
   function fmtPct(v) {
     if (v === null || v === undefined || isNaN(v)) return "—";
     return (v*100).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + "%";
@@ -661,11 +835,21 @@
   }
 
   // ---- derived computation ----
-  function computeEntries() {
-    var out = [];
+  // Percorre lançamentos: dias de trading e saques. Saque reduz o saldo,
+  // mas não conta como dia nem como perda (o retorno do dia seguinte parte do saldo já sem o saque).
+  function computeAll() {
+    var days = [], items = [];
     var prevFinal = state.balance;
+    var totalSaque = 0;
     for (var i = 0; i < state.entries.length; i++) {
       var e = state.entries[i];
+      if (e.type === "saque") {
+        var amt = Number(e.amount) || 0;
+        prevFinal -= amt;
+        totalSaque += amt;
+        items.push({ type: "saque", entryIdx: i, date: e.date, amount: amt, saldoApos: prevFinal });
+        continue;
+      }
       var asian = Number(e.asian) || 0;
       var ny = Number(e.ny) || 0;
       var saldoInicial = prevFinal;
@@ -674,39 +858,136 @@
       var nyPct = saldoAposAsian !== 0 ? ny / saldoAposAsian : 0;
       var saldoFinal = saldoAposAsian + ny;
       var retornoLiquido = saldoInicial !== 0 ? (saldoFinal - saldoInicial) / saldoInicial : 0;
-      out.push({
-        day: i+1, date: e.date, asian: asian, ny: ny,
+      var row = {
+        type: "day", day: days.length + 1, entryIdx: i, date: e.date, asian: asian, ny: ny,
         saldoInicial: saldoInicial, asianPct: asianPct,
         saldoAposAsian: saldoAposAsian, nyPct: nyPct,
         saldoFinal: saldoFinal, retornoLiquido: retornoLiquido
-      });
+      };
+      days.push(row);
+      items.push(row);
       prevFinal = saldoFinal;
     }
-    return out;
+    days.currentBalance = prevFinal;
+    days.totalSaque = totalSaque;
+    return { days: days, items: items };
   }
+  function computeEntries() { return computeAll().days; }
 
   function computeMilestones(computed) {
     var lastDay = computed.length;
-    var saldoBase = lastDay === 0 ? state.balance : computed[lastDay-1].saldoFinal;
+    var saldoBase = computed.currentBalance;
+    var maxM = MILESTONES[MILESTONES.length - 1];
+
+    // simulação dia a dia a partir do último dia real, respeitando as faixas de meta
+    var sim = {}; // dia -> { saldo, avg } ou { saldo: null } se parou
+    var saldo = saldoBase;
+    var stopped = false;
+    for (var d = lastDay + 1; d <= maxM; d++) {
+      if (stopped) { sim[d] = { saldo: null, avg: null }; continue; }
+      var n = state.nOverrides[d] || d;
+      var windowStart = Math.max(0, lastDay - n);
+      var slice = computed.slice(windowStart, lastDay);
+      var naturalAvg = slice.length ? slice.reduce(function(s,x){ return s + x.retornoLiquido; }, 0) / slice.length : 0;
+      var rate = getTierRate(saldo, naturalAvg);
+      if (rate === null) { stopped = true; sim[d] = { saldo: null, avg: null }; continue; }
+      saldo = saldo * (1 + rate);
+      sim[d] = { saldo: saldo, avg: rate };
+    }
+
     return MILESTONES.map(function(m) {
       var n = state.nOverrides[m] || m;
       if (m <= lastDay) {
-        var saldo = computed[m-1].saldoFinal;
-        return { marco: m, n: n, situacao: "Real", saldo: saldo, avg: null,
-                 ganhoDiario: null, retornoAcum: state.balance ? (saldo - state.balance)/state.balance : null };
+        var saldoReal = computed[m-1].saldoFinal;
+        return { marco: m, n: n, situacao: "Real", saldo: saldoReal, avg: null,
+                 ganhoDiario: null, retornoAcum: state.balance ? (saldoReal - state.balance)/state.balance : null,
+                 foraDaFaixa: false };
       }
-      if (lastDay === 0) {
-        return { marco: m, n: n, situacao: "Projetado", saldo: null, avg: null, ganhoDiario: null, retornoAcum: null };
+      var s = sim[m];
+      if (lastDay === 0 && !tierState.enabled) {
+        return { marco: m, n: n, situacao: "Projetado", saldo: null, avg: null, ganhoDiario: null, retornoAcum: null, foraDaFaixa: false };
       }
-      var windowStart = Math.max(0, lastDay - n);
-      var slice = computed.slice(windowStart, lastDay);
-      var avg = slice.reduce(function(s,x){ return s + x.retornoLiquido; }, 0) / slice.length;
-      var saldo = saldoBase * Math.pow(1 + avg, m - lastDay);
-      var ganhoDiario = saldo * avg;
-      var retornoAcum = state.balance ? (saldo - state.balance) / state.balance : null;
-      return { marco: m, n: n, situacao: "Projetado", saldo: saldo, avg: avg, ganhoDiario: ganhoDiario, retornoAcum: retornoAcum };
+      if (!s || s.saldo === null) {
+        return { marco: m, n: n, situacao: "Fora da faixa", saldo: null, avg: null, ganhoDiario: null, retornoAcum: null, foraDaFaixa: true };
+      }
+      var ganhoDiario = s.saldo * s.avg;
+      var retornoAcum = state.balance ? (s.saldo - state.balance) / state.balance : null;
+      return { marco: m, n: n, situacao: "Projetado", saldo: s.saldo, avg: s.avg, ganhoDiario: ganhoDiario, retornoAcum: retornoAcum, foraDaFaixa: false };
     });
   }
+
+  // ---- faixas de meta (metas por saldo) ----
+  var tierEnableToggle = document.getElementById("tierEnableToggle");
+  var tierConfigBody = document.getElementById("tierConfigBody");
+  var tierModeSelect = document.getElementById("tierModeSelect");
+  var tierRowsEl = document.getElementById("tierRows");
+  var tierAddBtn = document.getElementById("tierAddBtn");
+
+  function saveTierState() {
+    saveJSON(STORAGE_KEYS.tiers, tierState);
+  }
+
+  function renderTierConfig() {
+    tierEnableToggle.checked = !!tierState.enabled;
+    tierConfigBody.style.display = tierState.enabled ? "block" : "none";
+    tierModeSelect.value = tierState.mode || "teto";
+
+    tierRowsEl.innerHTML = "";
+    tierState.tiers.forEach(function(t, idx){
+      var row = document.createElement("div");
+      row.className = "tier-row";
+      row.innerHTML =
+        '<input type="number" class="tier-min" data-idx="' + idx + '" value="' + t.min + '" placeholder="de">' +
+        '<span class="sep">a</span>' +
+        '<input type="number" class="tier-max" data-idx="' + idx + '" value="' + t.max + '" placeholder="até">' +
+        '<span class="sep">=</span>' +
+        '<input type="number" class="tier-pct" data-idx="' + idx + '" value="' + t.pct + '" placeholder="%" step="0.1">' +
+        '<span class="sep">%</span>' +
+        '<button class="tier-del" data-idx="' + idx + '">✕</button>';
+      tierRowsEl.appendChild(row);
+    });
+
+    tierRowsEl.querySelectorAll(".tier-min, .tier-max, .tier-pct").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        var idx = +inp.dataset.idx;
+        var field = inp.classList.contains("tier-min") ? "min" : (inp.classList.contains("tier-max") ? "max" : "pct");
+        tierState.tiers[idx][field] = Number(inp.value) || 0;
+        saveTierState();
+        renderProjecao();
+        renderTrade();
+      });
+    });
+    tierRowsEl.querySelectorAll(".tier-del").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        tierState.tiers.splice(+btn.dataset.idx, 1);
+        saveTierState();
+        renderProjecao();
+        renderTrade();
+      });
+    });
+  }
+
+  tierEnableToggle.addEventListener("change", function(){
+    tierState.enabled = tierEnableToggle.checked;
+    saveTierState();
+    renderProjecao();
+    renderTrade();
+  });
+  tierModeSelect.addEventListener("change", function(){
+    tierState.mode = tierModeSelect.value;
+    saveTierState();
+    renderProjecao();
+    renderTrade();
+  });
+  tierAddBtn.addEventListener("click", function(){
+    var last = tierState.tiers[tierState.tiers.length - 1];
+    var min = last ? last.max : 0;
+    tierState.tiers.push({ min: min, max: min + 100, pct: 1 });
+    saveTierState();
+    renderTierConfig();
+    renderProjecao();
+    renderTrade();
+  });
 
   // ---- rendering: Diário ----
   var daysList = document.getElementById("daysList");
@@ -714,14 +995,33 @@
   var initialBalanceInput = document.getElementById("initialBalance");
 
   function renderDiario() {
-    var computed = computeEntries();
+    var all = computeAll();
+    var computed = all.items;
     daysList.innerHTML = "";
     diarioEmpty.style.display = computed.length ? "none" : "block";
+    var totalEl = document.getElementById("totalSacado");
+    totalEl.innerHTML = all.days.totalSaque > 0 ? ("Total sacado: <b>" + moneyH(all.days.totalSaque) + "</b>") : "";
 
     computed.slice().reverse().forEach(function(row) {
-      var idx = row.day - 1;
+      var idx = row.entryIdx;
       var card = document.createElement("div");
       card.className = "card day-card";
+
+      if (row.type === "saque") {
+        card.innerHTML =
+          '<div class="day-head">' +
+            '<span class="day-n" style="color:var(--gold);">SAQUE</span>' +
+            '<input type="date" value="' + row.date + '" data-idx="' + idx + '" class="date-input">' +
+          '</div>' +
+          '<div class="sess"><div class="lbl">VALOR SACADO</div>' +
+            '<div class="in-row"><span>−</span><input type="number" step="0.01" min="0" inputmode="decimal" value="' + row.amount + '" data-idx="' + idx + '" class="saque-input"></div>' +
+          '</div>' +
+          '<div class="day-footer"><span>Saldo após saque <b class="num">' + moneyH(row.saldoApos) + '</b></span>' +
+          '<span class="net-badge net-zero">não é perda</span></div>' +
+          '<button class="del-btn" data-idx="' + idx + '" style="position:absolute; top:10px; right:78px;">✕</button>';
+        daysList.appendChild(card);
+        return;
+      }
 
       var netClass = row.retornoLiquido > 0 ? "net-pos" : (row.retornoLiquido < 0 ? "net-neg" : "net-zero");
 
@@ -730,7 +1030,7 @@
           '<span class="day-n">DIA ' + row.day + '</span>' +
           '<input type="date" value="' + row.date + '" data-idx="' + idx + '" class="date-input">' +
         '</div>' +
-        '<div class="flow">Saldo inicial <span class="amt num">' + fmtMoney(row.saldoInicial) + '</span></div>' +
+        '<div class="flow">Saldo inicial <span class="amt num">' + moneyH(row.saldoInicial) + '</span></div>' +
         '<div class="sess-grid">' +
           '<div class="sess">' +
             '<div class="lbl">SESSÃO ASIÁTICA</div>' +
@@ -744,7 +1044,7 @@
           '</div>' +
         '</div>' +
         '<div class="day-footer">' +
-          '<span>Saldo final <b class="num">' + fmtMoney(row.saldoFinal) + '</b></span>' +
+          '<span>Saldo final <b class="num">' + moneyH(row.saldoFinal) + '</b></span>' +
           '<span class="net-badge ' + netClass + ' num">' + (row.retornoLiquido>=0?'+':'') + fmtPct(row.retornoLiquido) + '</span>' +
         '</div>' +
         '<button class="del-btn" data-idx="' + idx + '" style="position:absolute; top:10px; right:78px;">✕</button>';
@@ -764,6 +1064,12 @@
         persistAndRender();
       });
     });
+    daysList.querySelectorAll(".saque-input").forEach(function(inp){
+      inp.addEventListener("change", function(){
+        state.entries[+inp.dataset.idx].amount = Math.max(0, Number(inp.value) || 0);
+        persistAndRender();
+      });
+    });
     daysList.querySelectorAll(".date-input").forEach(function(inp){
       inp.addEventListener("change", function(){
         state.entries[+inp.dataset.idx].date = inp.value;
@@ -777,6 +1083,12 @@
       });
     });
   }
+
+  document.getElementById("addSaqueBtn").addEventListener("click", function(){
+    var lastDate = state.entries.length ? state.entries[state.entries.length-1].date : todayStr();
+    state.entries.push({ type: "saque", date: lastDate, amount: 0 });
+    persistAndRender();
+  });
 
   document.getElementById("addDayBtn").addEventListener("click", function(){
     var lastDate = state.entries.length ? state.entries[state.entries.length-1].date : addDays(todayStr(), -1);
@@ -795,31 +1107,35 @@
   var chartInstance = null;
 
   function renderProjecao() {
+    renderTierConfig();
     var computed = computeEntries();
     var milestones = computeMilestones(computed);
     var lastDay = computed.length;
-    var current = lastDay ? computed[lastDay-1].saldoFinal : state.balance;
+    var current = computed.currentBalance;
 
-    document.getElementById("statInitial").textContent = fmtMoney(state.balance);
+    document.getElementById("statInitial").innerHTML = moneyH(state.balance);
     document.getElementById("statLastDay").textContent = lastDay ? String(lastDay) : "—";
-    document.getElementById("statCurrent").textContent = fmtMoney(current);
+    document.getElementById("statCurrent").innerHTML = moneyH(current);
 
     milestonesList.innerHTML = "";
     milestones.forEach(function(row) {
       var card = document.createElement("div");
       card.className = "card milestone-card";
       var isReal = row.situacao === "Real";
+      var isOut = row.foraDaFaixa;
+      var badgeClass = isReal ? "badge-real" : (isOut ? "badge-out" : "badge-proj");
       card.innerHTML =
         '<div class="ms-day"><div class="d">' + row.marco + '</div><div class="lbl">DIAS</div></div>' +
         '<div class="ms-body">' +
           '<div class="ms-top">' +
-            '<span class="ms-saldo num">' + fmtMoney(row.saldo) + '</span>' +
-            '<span class="badge ' + (isReal ? 'badge-real' : 'badge-proj') + '">' + row.situacao + '</span>' +
+            '<span class="ms-saldo num">' + (isOut ? "—" : moneyH(row.saldo)) + '</span>' +
+            '<span class="badge ' + badgeClass + '">' + row.situacao + '</span>' +
           '</div>' +
           '<div class="ms-meta">' +
+            (isOut ? '<span>acima da última faixa configurada</span>' : '') +
             (row.avg !== null ? '<span>média <b class="num">' + fmtPct(row.avg) + '</b>/dia</span>' : '') +
-            (row.ganhoDiario !== null ? '<span>≈ <b class="num">' + fmtMoney(row.ganhoDiario) + '</b>/dia</span>' : '') +
-            (!isReal ? '<span>N <input type="number" class="n-input" min="1" value="' + row.n + '" data-marco="' + row.marco + '"></span>' : '') +
+            (row.ganhoDiario !== null ? '<span>≈ <b class="num">' + moneyH(row.ganhoDiario) + '</b>/dia</span>' : '') +
+            (!isReal && !isOut ? '<span>N <input type="number" class="n-input" min="1" value="' + row.n + '" data-marco="' + row.marco + '"></span>' : '') +
           '</div>' +
         '</div>';
       milestonesList.appendChild(card);
@@ -930,7 +1246,7 @@
 
   function renderLote() {
     var computed = computeEntries();
-    var current = computed.length ? computed[computed.length-1].saldoFinal : state.balance;
+    var current = computed.currentBalance;
 
     lotPairSelect.value = lotState.pairIdx || 0;
     var pair = currentPair();
@@ -989,7 +1305,7 @@
     if (denom > 0) {
       var lot = riskAmount / denom;
       lotResultEl.textContent = lot.toFixed(2) + " lotes";
-      lotRiskAmountEl.textContent = "Risco se o stop for atingido: " + fmtMoney(riskAmount);
+      lotRiskAmountEl.innerHTML = "Risco se o stop for atingido: " + moneyH(riskAmount);
     } else {
       lotResultEl.textContent = "—";
       lotRiskAmountEl.textContent = "Informe a distância até o stop";
@@ -1000,8 +1316,8 @@
     var simMove = Number(lotSimMoveInput.value) || 0;
     if (unitValue > 0 && simLot > 0 && simMove > 0) {
       var resultado = simLot * simMove * unitValue;
-      lotSimGainEl.textContent = "+" + fmtMoney(resultado);
-      lotSimLossEl.textContent = "-" + fmtMoney(resultado);
+      lotSimGainEl.innerHTML = "+" + moneyH(resultado);
+      lotSimLossEl.innerHTML = "-" + moneyH(resultado);
     } else {
       lotSimGainEl.textContent = "—";
       lotSimLossEl.textContent = "—";
@@ -1088,42 +1404,62 @@
 
     var maxM = TRADE_MILESTONES[TRADE_MILESTONES.length - 1];
     var sim = {};
-    var saldoC = saldoAtual, baseC = saldoAtual, saqueAcumC = 0;
-    var saldoL = saldoAtual, baseL = saldoAtual, saqueAcumL = 0;
+    var saldoC = saldoAtual, baseC = saldoAtual, saqueAcumC = 0, stoppedC = false;
+    var saldoL = saldoAtual, baseL = saldoAtual, saqueAcumL = 0, stoppedL = false;
     var saqueOn = tradeCfg.saqueOn;
     var metaPct = (tradeCfg.metaPct || 0) / 100;
     var saquePct = (tradeCfg.saquePct || 0) / 100;
 
     for (var i = lastReal + 1; i <= maxM; i++) {
-      var growthC = saldoC * (1 + (avgPct || 0));
-      if (saqueOn && baseC > 0 && growthC >= baseC * (1 + metaPct)) {
-        var lucroC = growthC - baseC;
-        var saqueC = lucroC * saquePct;
-        saldoC = growthC - saqueC;
-        baseC = saldoC;
-        saqueAcumC += saqueC;
-      } else {
-        saldoC = growthC;
+      if (!stoppedC) {
+        var rateC = getTierRate(saldoC, avgPct || 0);
+        if (rateC === null) {
+          stoppedC = true;
+        } else {
+          var growthC = saldoC * (1 + rateC);
+          if (saqueOn && baseC > 0 && growthC >= baseC * (1 + metaPct)) {
+            var lucroC = growthC - baseC;
+            var saqueC = lucroC * saquePct;
+            saldoC = growthC - saqueC;
+            baseC = saldoC;
+            saqueAcumC += saqueC;
+          } else {
+            saldoC = growthC;
+          }
+        }
       }
-      var growthL = saldoL + (avgDollar || 0);
-      if (saqueOn && baseL > 0 && growthL >= baseL * (1 + metaPct)) {
-        var lucroL = growthL - baseL;
-        var saqueL = lucroL * saquePct;
-        saldoL = growthL - saqueL;
-        baseL = saldoL;
-        saqueAcumL += saqueL;
-      } else {
-        saldoL = growthL;
+      if (!stoppedL) {
+        var rateL = getTierDollarRate(saldoL, avgDollar || 0);
+        if (rateL === null) {
+          stoppedL = true;
+        } else {
+          var growthL = saldoL + rateL;
+          if (saqueOn && baseL > 0 && growthL >= baseL * (1 + metaPct)) {
+            var lucroL = growthL - baseL;
+            var saqueL = lucroL * saquePct;
+            saldoL = growthL - saqueL;
+            baseL = saldoL;
+            saqueAcumL += saqueL;
+          } else {
+            saldoL = growthL;
+          }
+        }
       }
-      sim[i] = { saldoC: saldoC, saldoL: saldoL, saqueAcumC: saqueAcumC, saqueAcumL: saqueAcumL };
+      sim[i] = {
+        saldoC: stoppedC ? null : saldoC, saldoL: stoppedL ? null : saldoL,
+        saqueAcumC: saqueAcumC, saqueAcumL: saqueAcumL
+      };
     }
 
     return TRADE_MILESTONES.map(function(m){
       if (m <= lastReal) {
-        return { m: m, situacao: "Real", saldoC: real[m-1].after, saldoL: real[m-1].after, saqueAcumC: 0, saqueAcumL: 0 };
+        return { m: m, situacao: "Real", saldoC: real[m-1].after, saldoL: real[m-1].after,
+                 saqueAcumC: 0, saqueAcumL: 0, foraC: false, foraL: false };
       }
       var s = sim[m];
-      return { m: m, situacao: "Projetado", saldoC: s.saldoC, saldoL: s.saldoL, saqueAcumC: s.saqueAcumC, saqueAcumL: s.saqueAcumL };
+      return { m: m, situacao: "Projetado", saldoC: s.saldoC, saldoL: s.saldoL,
+               saqueAcumC: s.saqueAcumC, saqueAcumL: s.saqueAcumL,
+               foraC: s.saldoC === null, foraL: s.saldoL === null };
     }).map(function(row){
       return Object.assign(row, { avgPct: avgPct, avgDollar: avgDollar, lastReal: lastReal, saldoAtual: saldoAtual });
     });
@@ -1152,12 +1488,24 @@
   }
 
   function renderTrade() {
+    var tradeTierEnableToggle = document.getElementById("tradeTierEnableToggle");
+    var tradeTierSummary = document.getElementById("tradeTierSummary");
+    tradeTierEnableToggle.checked = !!tierState.enabled;
+    if (!tierState.enabled) {
+      tradeTierSummary.textContent = "Desativadas. As faixas são editadas na aba Projeção.";
+    } else if (!tierState.tiers.length) {
+      tradeTierSummary.textContent = "Ativadas, mas sem faixas cadastradas ainda — adicione na aba Projeção.";
+    } else {
+      var modeTxt = tierState.mode === "substituir" ? "substituindo a média" : "como teto da média";
+      tradeTierSummary.textContent = "Ativadas (" + tierState.tiers.length + " faixa" + (tierState.tiers.length > 1 ? "s" : "") + ", " + modeTxt + "). Editadas na aba Projeção.";
+    }
+
     var real = computeTradeBalances();
     var lastReal = real.length;
     var saldoAtual = lastReal ? real[lastReal-1].after : state.balance;
 
     document.getElementById("tStatCount").textContent = String(lastReal);
-    document.getElementById("tStatBalance").textContent = fmtMoney(saldoAtual);
+    document.getElementById("tStatBalance").innerHTML = moneyH(saldoAtual);
 
     renderRecentTrades();
 
@@ -1177,11 +1525,13 @@
             '<span style="font-size:11px; color:var(--text-dim); font-weight:700;">' + (isReal ? "RESULTADO REAL" : "PROJEÇÃO") + '</span>' +
             '<span class="badge ' + (isReal ? "badge-real" : "badge-proj") + '">' + row.situacao + '</span>' +
           '</div>' +
-          '<div class="ms2-row"><span class="tag">Composta</span><span class="val num">' + fmtMoney(row.saldoC) + '</span></div>' +
-          (row.saqueAcumC > 0 ? '<div class="ms2-row"><span class="tag">Sacado</span><span class="val num" style="font-size:11px; color:var(--teal);">' + fmtMoney(row.saqueAcumC) + '</span></div>' : '') +
+          '<div class="ms2-row"><span class="tag">Composta</span><span class="val num">' + (row.foraC ? "—" : moneyH(row.saldoC)) + '</span></div>' +
+          (row.foraC ? '<div class="ms2-row"><span class="tag"></span><span class="val num" style="font-size:10.5px; color:var(--text-dim);">fora da faixa</span></div>' : '') +
+          (row.saqueAcumC > 0 ? '<div class="ms2-row"><span class="tag">Sacado</span><span class="val num" style="font-size:11px; color:var(--teal);">' + moneyH(row.saqueAcumC) + '</span></div>' : '') +
           '<div class="ms2-divider"></div>' +
-          '<div class="ms2-row"><span class="tag">Linear</span><span class="val num">' + fmtMoney(row.saldoL) + '</span></div>' +
-          (row.saqueAcumL > 0 ? '<div class="ms2-row"><span class="tag">Sacado</span><span class="val num" style="font-size:11px; color:var(--teal);">' + fmtMoney(row.saqueAcumL) + '</span></div>' : '') +
+          '<div class="ms2-row"><span class="tag">Linear</span><span class="val num">' + (row.foraL ? "—" : moneyH(row.saldoL)) + '</span></div>' +
+          (row.foraL ? '<div class="ms2-row"><span class="tag"></span><span class="val num" style="font-size:10.5px; color:var(--text-dim);">fora da faixa</span></div>' : '') +
+          (row.saqueAcumL > 0 ? '<div class="ms2-row"><span class="tag">Sacado</span><span class="val num" style="font-size:11px; color:var(--teal);">' + moneyH(row.saqueAcumL) + '</span></div>' : '') +
         '</div>';
       tradeMilestonesList.appendChild(card);
     });
@@ -1197,6 +1547,13 @@
   });
   tradeResultInput.addEventListener("keydown", function(e){
     if (e.key === "Enter") document.getElementById("tradeAddBtn").click();
+  });
+
+  document.getElementById("tradeTierEnableToggle").addEventListener("change", function(e){
+    tierState.enabled = e.target.checked;
+    saveTierState();
+    renderProjecao();
+    renderTrade();
   });
 
   tradeNInput.addEventListener("change", function(){
@@ -1450,6 +1807,7 @@
     lotState = loadJSON(STORAGE_KEYS.lot, { pairIdx: 0, riskPct: 1, distance: 50, unit: "pips", simLot: 0.10, simMove: 50, customTick: null, customContract: null, customQuote: "USD", exchangeRate: 1 });
     tradesState = loadJSON(STORAGE_KEYS.trades, []);
     tradeCfg = loadJSON(STORAGE_KEYS.tradeCfg, { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 });
+    tierState = loadJSON(STORAGE_KEYS.tiers, { enabled: false, mode: "teto", tiers: [] });
 
     initialBalanceInput.value = state.balance;
     document.getElementById("initialBalanceCurrencySymbol").textContent = (CURRENCIES[ACTIVE_CURRENCY] || CURRENCIES.USD).symbol;
@@ -1465,6 +1823,7 @@
     renderProjecao();
     renderLote();
     renderTrade();
+    renderFx();
     hideProfileOverlay();
   }
 
@@ -1537,6 +1896,19 @@
   closeProfileOverlay.addEventListener("click", hideProfileOverlay);
   profileChipBtn.addEventListener("click", function(){ openProfileOverlay(false); });
 
+  document.getElementById("fxRate").addEventListener("change", function(e){
+    var v = Number(e.target.value) || 0;
+    if (v > 0) { fx.rates[ACTIVE_CURRENCY] = v; fx.manual[ACTIVE_CURRENCY] = true; saveFx(); }
+    renderAllMoney();
+  });
+  document.getElementById("fxShowToggle").addEventListener("change", function(e){
+    fx.show = e.target.checked; saveFx(); renderAllMoney();
+  });
+  document.getElementById("fxRefreshBtn").addEventListener("click", function(){
+    var b = this; b.textContent = "Buscando…";
+    fetchFx(true).then(function(){ b.textContent = "↻ Atualizar cotação"; });
+  });
+
   // ---- boot ----
   (function boot(){
     var profiles = loadProfiles();
@@ -1549,6 +1921,7 @@
     } else {
       openProfileOverlay(true);
     }
+    fetchFx(false);
   })();
 
   if ("serviceWorker" in navigator) {
