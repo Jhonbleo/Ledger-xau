@@ -27,6 +27,7 @@
     --slate: #6C8CB8;
     --slate-soft: rgba(108,140,184,0.14);
     --danger: #D96C6C;
+    --blue: #4C8DDA;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -105,8 +106,9 @@
     z-index: 9;
     border-bottom: 1px solid var(--border);
   }
+  nav.tabs { overflow-x: auto; }
   nav.tabs button {
-    flex: 1;
+    flex: 1 0 auto; white-space: nowrap; padding-left: 14px; padding-right: 14px;
     padding: 9px 10px;
     border-radius: 10px;
     border: 1px solid transparent;
@@ -215,6 +217,59 @@
   .badge-real { background: var(--teal-soft); color: var(--teal); }
   .badge-proj { background: var(--slate-soft); color: var(--slate); }
   .brl { display:block; font-size:10.5px; font-weight:500; color:var(--text-dim); font-family:'Space Grotesk', sans-serif; margin-top:1px; }
+  .sim-details > summary { cursor: pointer; font-weight: 700; font-size: 13.5px; padding: 10px 2px; list-style: none; }
+  .sim-details > summary::-webkit-details-marker { display: none; }
+  .sim-lbl { color: var(--text-dim); font-size: 12px; }
+  .preset-row { display: flex; gap: 6px; margin-top: 10px; }
+  .preset-row button, .mini-btn {
+    flex: 1; background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+    border-radius: 8px; padding: 8px 6px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
+  }
+  .sim-scroll { overflow-x: auto; }
+  .sim-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+  .sim-table th { color: var(--text-dim); font-weight: 600; font-size: 10px; text-align: right; padding: 4px 6px; white-space: nowrap; }
+  .sim-table td { text-align: right; padding: 6px 6px; border-top: 1px solid var(--border); white-space: nowrap; }
+  .sim-table th:first-child, .sim-table td:first-child { text-align: left; color: var(--text-dim); }
+  .sens-cur { outline: 2px solid var(--gold); outline-offset: -2px; }
+  .pos { color: var(--teal); } .neg { color: var(--danger); }
+  .res-seg { display: flex; gap: 6px; margin-bottom: 10px; }
+  .res-seg button {
+    flex: 1; padding: 9px 6px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text-dim); font-family: inherit; font-weight: 600; font-size: 13px; cursor: pointer;
+  }
+  .res-seg button.active { color: var(--text); border-color: var(--gold); background: var(--gold-soft); }
+  .res-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .res-nav button {
+    width: 38px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer;
+  }
+  .res-nav span { font-weight: 700; font-size: 15px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 12px; }
+  .cal-head { text-align: center; font-size: 10px; color: var(--text-dim); font-weight: 600; padding: 2px 0; }
+  .cal-cell {
+    aspect-ratio: 1 / 1; border-radius: 8px; border: 1px solid var(--border); background: var(--surface);
+    display: flex; flex-direction: column; justify-content: space-between; padding: 3px 4px; min-width: 0; overflow: hidden;
+  }
+  .cal-cell .dn { font-size: 9px; color: var(--text-dim); line-height: 1; }
+  .cal-cell .dv { font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; text-align: center; line-height: 1.1; }
+  .cal-void { border: none; background: transparent; }
+  .res-box-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; margin-bottom: 12px; }
+  .res-box {
+    border-radius: 12px; border: 1px solid var(--border); background: var(--surface);
+    padding: 10px 10px; min-height: 84px; display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .res-box .t { font-size: 11px; color: var(--text-dim); font-weight: 600; }
+  .res-box .t small { display: block; font-weight: 400; font-size: 9.5px; margin-top: 1px; }
+  .res-box .v { font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px; }
+  .res-box .p { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; opacity: 0.85; }
+  .res-pos { background: rgba(63,167,150,0.26) !important; border-color: var(--teal) !important; }
+  .res-pos .dv, .res-pos .v, .res-pos .p { color: var(--teal); }
+  .res-neg { background: rgba(217,108,108,0.26) !important; border-color: var(--danger) !important; }
+  .res-neg .dv, .res-neg .v, .res-neg .p { color: var(--danger); }
+  .res-zero { background: rgba(76,141,218,0.26) !important; border-color: var(--blue) !important; }
+  .res-zero .dv, .res-zero .v, .res-zero .p { color: var(--blue); }
+  .res-legend { display: flex; gap: 14px; justify-content: center; font-size: 11px; color: var(--text-dim); margin-bottom: 8px; }
+  .res-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
   .badge-out { background: var(--surface-2); color: var(--text-dim); }
   .ms-meta { display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--text-dim); flex-wrap: wrap; }
   .ms-meta b { color: var(--text); font-weight: 600; }
@@ -392,6 +447,8 @@
   <button data-view="projecao">Projeção</button>
   <button data-view="lote">Lote</button>
   <button data-view="trade">Por Trade</button>
+  <button data-view="res">Resultados</button>
+  <button data-view="sim">Simulador</button>
 </nav>
 
 <main>
@@ -619,6 +676,46 @@
     </p>
   </section>
 
+  <section id="view-res" class="view">
+    <div class="res-seg">
+      <button data-rv="dia" class="active">Dia</button>
+      <button data-rv="semana">Semana</button>
+      <button data-rv="mes">Mês</button>
+    </div>
+    <div class="res-nav"><button id="resPrev">◀</button><span id="resLabel"></span><button id="resNext">▶</button></div>
+    <div id="resSummary"></div>
+    <div id="resBody"></div>
+    <div class="res-legend">
+      <span><i style="background:var(--teal);"></i>Lucro</span>
+      <span><i style="background:var(--danger);"></i>Prejuízo</span>
+      <span><i style="background:var(--blue);"></i>Zero</span>
+    </div>
+    <p class="legend-note" style="text-align:center;">Baseado nos dias lançados na aba Diário (saques não contam como perda).</p>
+  </section>
+
+  <section id="view-sim" class="view">
+    <details id="simParamsDetails" class="sim-details card" open>
+      <summary>⚙ Parâmetros da simulação</summary>
+      <div id="simParams"></div>
+    </details>
+    <button class="add-btn" id="simRerun">↻ Rodar simulação de novo</button>
+
+    <div id="simDiag"></div>
+    <div class="chart-wrap"><canvas id="simChart" style="max-height:240px;"></canvas></div>
+    <div id="simStats"></div>
+    <div class="card"><p class="card-label">Evolução ao longo do tempo</p><div class="sim-scroll" id="simTable"></div></div>
+    <div class="card">
+      <p class="card-label">Mapa de sensibilidade — saldo final esperado</p>
+      <div class="sim-scroll" id="simSens"></div>
+      <p class="legend-note" style="padding-top:8px;">Cruza taxa de acerto (linhas) com R:R (colunas) usando seu risco/meta, custo e prazo. Verde = termina acima do saldo inicial, vermelho = abaixo. Ignora níveis e saque. A célula com borda dourada é a mais próxima dos seus parâmetros.</p>
+    </div>
+    <p class="legend-note">
+      <b>P10 / P50 / P90</b> = em 10%, 50% e 90% das simulações o resultado ficou abaixo desse valor (pessimista, mediano, otimista).
+      A linha <b>Esperado</b> é a média matemática, sem sorte nem azar. Cada rodada sorteia os resultados de novo,
+      então os números variam um pouco — quanto mais simulações, mais estável.
+    </p>
+  </section>
+
   <div class="card" style="display:flex; gap:8px;">
     <button class="add-btn" id="exportBtn" style="margin-bottom:0;">↓ Exportar dados</button>
     <button class="add-btn" id="importBtn" style="margin-bottom:0;">↑ Importar dados</button>
@@ -643,7 +740,7 @@
     var p = "xauledger_p" + profileId + "_";
     STORAGE_KEYS = {
       balance: p + "balance", entries: p + "entries", n: p + "noverrides",
-      lot: p + "lot", trades: p + "trades", tradeCfg: p + "tradecfg", tiers: p + "tiers"
+      lot: p + "lot", trades: p + "trades", tradeCfg: p + "tradecfg", tiers: p + "tiers", sim: p + "sim"
     };
   }
 
@@ -673,6 +770,12 @@
   var tradeCfg = { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 };
   var TRADE_MILESTONES = [5,10,15,20,25,30,40,50,75,100,150,200,300,400,500,600,700,800,900,1000];
   var tierState = { enabled: false, mode: "teto", tiers: [] };
+  function SIM_DEFAULT() {
+    return { mode: "trade", start: null, basePct: 1, winRate: 50, rr: 2, opsPerDay: 3, days: 90,
+             cost: 0, reinvest: true, tiersOn: false, tiers: [], saqueOn: false, saqueMeta: 20,
+             saquePct: 50, ruin: 50, target: 0, nSims: 300, logScale: false };
+  }
+  var simState = SIM_DEFAULT();
 
   // Dado um saldo e uma taxa "natural" (média real), devolve a taxa efetiva a usar.
   // Retorna null para sinalizar "parar de projetar" (saldo passou da última faixa).
@@ -1576,6 +1679,516 @@
     });
   });
 
+  // ---- Resultados (dia / semana / mês) ----
+  var resState = { view: "dia", year: 0, month: 0, ready: false };
+  var MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  function resParse(ds) { var p = ds.split("-"); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function resKey(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function resMonday(d) { var m = new Date(d.getFullYear(), d.getMonth(), d.getDate()); m.setDate(m.getDate() - ((m.getDay() + 6) % 7)); return m; }
+  function resIsoWeek(d) {
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var dn = t.getUTCDay() || 7;
+    t.setUTCDate(t.getUTCDate() + 4 - dn);
+    var y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+    return Math.ceil(((t - y0) / 86400000 + 1) / 7);
+  }
+  function resDM(d) { return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0"); }
+  function resClass(v) { return Math.abs(v) < 0.005 ? "res-zero" : (v > 0 ? "res-pos" : "res-neg"); }
+  function resShort(v) {
+    var a = Math.abs(v), sg = v > 0 ? "+" : (v < 0 ? "-" : "");
+    if (a >= 1e6) return sg + (a / 1e6).toFixed(1) + "M";
+    if (a >= 1e4) return sg + (a / 1e3).toFixed(0) + "k";
+    if (a >= 1e3) return sg + (a / 1e3).toFixed(1) + "k";
+    if (a >= 100) return sg + a.toFixed(0);
+    return sg + a.toFixed(2);
+  }
+  function resPct(p) { return (p >= 0 ? "+" : "") + fmtPct(p); }
+
+  // agrega os dias do Diário por data
+  function resByDate() {
+    var map = {};
+    computeAll().days.forEach(function(d){
+      if (!d.date) return;
+      var m = map[d.date] || (map[d.date] = { profit: 0, base: d.saldoInicial });
+      m.profit += d.saldoFinal - d.saldoInicial;
+    });
+    return map;
+  }
+
+  function resSummaryHTML(vals, unit) {
+    var total = 0, pos = 0, neg = 0, zero = 0, best = null, worst = null;
+    vals.forEach(function(v){
+      total += v;
+      if (Math.abs(v) < 0.005) zero++; else if (v > 0) pos++; else neg++;
+      if (best === null || v > best) best = v;
+      if (worst === null || v < worst) worst = v;
+    });
+    var cls = Math.abs(total) < 0.005 ? "" : (total > 0 ? "pos" : "neg");
+    return '<div class="stat-grid">' +
+      statBox("Resultado do período", (total > 0 ? "+" : "") + moneyH(total), cls) +
+      statBox(unit + " (+ / − / 0)", '<span class="pos">' + pos + '</span> / <span class="neg">' + neg + '</span> / <span style="color:var(--blue);">' + zero + '</span>') +
+      statBox("Melhor / pior", vals.length ? ('<span class="pos">' + resShort(best) + '</span> / <span class="neg">' + resShort(worst) + '</span>') : "—") +
+      '</div>';
+  }
+
+  function renderRes() {
+    var map = resByDate();
+    var keys = Object.keys(map).sort();
+    if (!resState.ready) {
+      var ref = keys.length ? resParse(keys[keys.length - 1]) : new Date();
+      resState.year = ref.getFullYear(); resState.month = ref.getMonth(); resState.ready = true;
+    }
+    document.querySelectorAll(".res-seg button").forEach(function(b){ b.classList.toggle("active", b.dataset.rv === resState.view); });
+    var body = document.getElementById("resBody"), label = document.getElementById("resLabel");
+    var vals = [], h = "";
+
+    if (resState.view === "dia") {
+      var y = resState.year, mo = resState.month;
+      label.textContent = MESES[mo] + " " + y;
+      var first = new Date(y, mo, 1), off = (first.getDay() + 6) % 7, nd = new Date(y, mo + 1, 0).getDate();
+      h = '<div class="cal-grid">' + ["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map(function(n){ return '<div class="cal-head">' + n + '</div>'; }).join("");
+      for (var i = 0; i < off; i++) h += '<div class="cal-cell cal-void"></div>';
+      for (var d = 1; d <= nd; d++) {
+        var k = resKey(new Date(y, mo, d)), m = map[k];
+        if (m) {
+          vals.push(m.profit);
+          h += '<div class="cal-cell ' + resClass(m.profit) + '" title="' + resDM(new Date(y, mo, d)) + ': ' + fmtMoney(m.profit) + '"><span class="dn">' + d + '</span><span class="dv">' + resShort(m.profit) + '</span></div>';
+        } else {
+          h += '<div class="cal-cell"><span class="dn">' + d + '</span></div>';
+        }
+      }
+      h += '</div>';
+      document.getElementById("resSummary").innerHTML = resSummaryHTML(vals, "Dias");
+    } else if (resState.view === "semana") {
+      label.textContent = resState.year;
+      var weeks = {};
+      keys.forEach(function(k){
+        var dt = resParse(k), mon = resMonday(dt);
+        if (mon.getFullYear() !== resState.year) return;
+        var wk = resKey(mon);
+        var w = weeks[wk] || (weeks[wk] = { mon: mon, profit: 0, base: map[k].base });
+        w.profit += map[k].profit;
+      });
+      var wl = Object.keys(weeks).sort();
+      if (!wl.length) h = '<div class="empty">Nenhum resultado nesse ano.</div>';
+      else {
+        h = '<div class="res-box-grid">';
+        wl.forEach(function(wk){
+          var w = weeks[wk], sun = new Date(w.mon); sun.setDate(sun.getDate() + 6);
+          vals.push(w.profit);
+          h += '<div class="res-box ' + resClass(w.profit) + '"><div class="t">Semana ' + resIsoWeek(w.mon) + '<small>' + resDM(w.mon) + ' – ' + resDM(sun) + '</small></div>' +
+            '<div class="v">' + (w.profit > 0 ? "+" : "") + moneyH(w.profit) + '</div><div class="p">' + resPct(w.base ? w.profit / w.base : 0) + '</div></div>';
+        });
+        h += '</div>';
+      }
+      document.getElementById("resSummary").innerHTML = resSummaryHTML(vals, "Semanas");
+    } else {
+      label.textContent = resState.year;
+      var months = {};
+      keys.forEach(function(k){
+        var dt = resParse(k);
+        if (dt.getFullYear() !== resState.year) return;
+        var mm = dt.getMonth();
+        var o = months[mm] || (months[mm] = { profit: 0, base: map[k].base });
+        o.profit += map[k].profit;
+      });
+      h = '<div class="res-box-grid">';
+      for (var mi = 0; mi < 12; mi++) {
+        var o2 = months[mi];
+        if (o2) {
+          vals.push(o2.profit);
+          h += '<div class="res-box ' + resClass(o2.profit) + '"><div class="t">' + MESES[mi] + '</div><div class="v">' + (o2.profit > 0 ? "+" : "") + moneyH(o2.profit) + '</div><div class="p">' + resPct(o2.base ? o2.profit / o2.base : 0) + '</div></div>';
+        } else {
+          h += '<div class="res-box"><div class="t">' + MESES[mi] + '</div><div class="v" style="color:var(--text-dim);">—</div></div>';
+        }
+      }
+      h += '</div>';
+      document.getElementById("resSummary").innerHTML = resSummaryHTML(vals, "Meses");
+    }
+    body.innerHTML = h;
+  }
+
+  document.querySelectorAll(".res-seg button").forEach(function(b){
+    b.addEventListener("click", function(){ resState.view = b.dataset.rv; renderRes(); });
+  });
+  function resStep(dir) {
+    if (resState.view === "dia") {
+      var d = new Date(resState.year, resState.month + dir, 1);
+      resState.year = d.getFullYear(); resState.month = d.getMonth();
+    } else resState.year += dir;
+    renderRes();
+  }
+  document.getElementById("resPrev").addEventListener("click", function(){ resStep(-1); });
+  document.getElementById("resNext").addEventListener("click", function(){ resStep(1); });
+
+  // ---- Simulador (what-if) ----
+  var simParamsEl = document.getElementById("simParams");
+  var simChart = null, simTimer = null;
+
+  function fmtCompact(v) {
+    if (v === null || v === undefined || isNaN(v)) return "—";
+    var meta = CURRENCIES[ACTIVE_CURRENCY] || CURRENCIES.USD;
+    var a = Math.abs(v), t;
+    if (a >= 1e9) t = (a / 1e9).toFixed(2) + "B";
+    else if (a >= 1e6) t = (a / 1e6).toFixed(2) + "M";
+    else if (a >= 1e4) t = (a / 1e3).toFixed(1) + "k";
+    else t = a.toLocaleString(meta.locale, {minimumFractionDigits: 0, maximumFractionDigits: 2});
+    return (v < 0 ? "-" : "") + meta.symbol + t;
+  }
+  function simClamp(x, a, b) { return Math.min(b, Math.max(a, x)); }
+  function simCurrentBalance() { return computeAll().days.currentBalance; }
+
+  function simRow(label, key, step, w) {
+    var v = simState[key];
+    if (key === "start" && (v === null || v === undefined)) v = Math.round(simCurrentBalance() * 100) / 100;
+    return '<div class="config-row" style="margin-bottom:8px;"><span class="sim-lbl">' + label + '</span>' +
+      '<input type="number" data-sim="' + key + '" step="' + step + '" inputmode="decimal" value="' + v + '" style="width:' + (w || 100) + 'px;"></div>';
+  }
+  function simToggle(label, key) {
+    return '<div class="toggle-row" style="margin:8px 0;"><span class="sim-lbl">' + label + '</span>' +
+      '<label class="switch"><input type="checkbox" data-sim="' + key + '"' + (simState[key] ? " checked" : "") + '><span class="slider"></span></label></div>';
+  }
+
+  function renderSimInputs() {
+    var isTrade = simState.mode === "trade";
+    var h = '';
+    h += '<p class="card-label">Modo</p>' +
+      '<select data-sim="mode"><option value="trade"' + (isTrade ? " selected" : "") + '>Por operação (risco, taxa de acerto, R:R)</option>' +
+      '<option value="dia"' + (!isTrade ? " selected" : "") + '>Por dia (meta %, dias positivos)</option></select>' +
+      '<div class="preset-row"><button data-act="preset" data-p="cons">Conservador</button><button data-act="preset" data-p="mod">Moderado</button><button data-act="preset" data-p="agr">Agressivo</button></div>';
+
+    h += '<p class="card-label" style="margin-top:16px;">Parâmetros</p>';
+    h += simRow("Saldo inicial", "start", "0.01", 110);
+    h += simRow(isTrade ? "Risco por operação (% do saldo)" : "Meta por dia (% do saldo)", "basePct", "0.01", 80);
+    h += simRow(isTrade ? "Taxa de acerto (%)" : "Dias positivos (%)", "winRate", "0.5", 80);
+    h += simRow(isTrade ? "R:R (ganho ÷ risco)" : "Ganho ÷ perda (dia verde ÷ vermelho)", "rr", "0.1", 80);
+    if (isTrade) h += simRow("Operações por dia", "opsPerDay", "1", 80);
+    h += simRow("Dias de operação", "days", "1", 80);
+    h += simRow("Custo por operação (% do valor arriscado)", "cost", "0.1", 80);
+    h += simToggle("Reinvestir lucros (juros compostos)", "reinvest");
+
+    h += '<div style="border-top:1px solid var(--border); margin-top:12px; padding-top:6px;">' +
+      simToggle("Níveis de % por faixa de saldo", "tiersOn");
+    if (simState.tiersOn) {
+      simState.tiers.forEach(function(t, i){
+        h += '<div class="tier-row"><input type="number" data-tier="min" data-idx="' + i + '" value="' + t.min + '" placeholder="de"><span class="sep">a</span>' +
+          '<input type="number" data-tier="max" data-idx="' + i + '" value="' + t.max + '" placeholder="até"><span class="sep">=</span>' +
+          '<input type="number" data-tier="pct" data-idx="' + i + '" value="' + t.pct + '" step="0.01" class="tier-pct"><span class="sep">%</span>' +
+          '<button class="tier-del" data-act="tier-del" data-idx="' + i + '">✕</button></div>';
+      });
+      h += '<button class="mini-btn" data-act="tier-add" style="width:100%; margin-top:4px;">+ Adicionar nível</button>' +
+        '<p class="legend-note" style="padding-top:6px;">Cada nível troca o ' + (isTrade ? "risco" : "meta") + ' por operação conforme o saldo. Fora dos níveis, vale o valor base acima.</p>';
+    }
+    h += '</div>';
+
+    h += '<div style="border-top:1px solid var(--border); margin-top:12px; padding-top:6px;">' + simToggle("Saque automático ao atingir meta", "saqueOn");
+    if (simState.saqueOn) {
+      h += simRow("Meta de lucro para sacar (%)", "saqueMeta", "1", 80) + simRow("% do lucro sacado", "saquePct", "1", 80);
+    }
+    h += '</div>';
+
+    h += '<div style="border-top:1px solid var(--border); margin-top:12px; padding-top:10px;"><p class="card-label">Metas e risco</p>' +
+      simRow("Ruína: saldo cair abaixo de (% do inicial)", "ruin", "1", 80) +
+      simRow("Saldo alvo (0 = ignorar)", "target", "1", 110) +
+      '<div class="config-row" style="margin-bottom:8px;"><span class="sim-lbl">Nº de simulações</span><select data-sim="nSims" style="width:100px;">' +
+      [100, 300, 1000].map(function(n){ return '<option value="' + n + '"' + (simState.nSims === n ? " selected" : "") + '>' + n + '</option>'; }).join("") +
+      '</select></div>' + simToggle("Gráfico em escala logarítmica", "logScale") + '</div>';
+
+    h += '<div style="border-top:1px solid var(--border); margin-top:12px; padding-top:10px;"><p class="card-label">Preencher com meu histórico real</p>' +
+      '<div class="preset-row"><button data-act="hist-trades">Dos meus trades</button><button data-act="hist-dias">Dos meus dias</button></div></div>';
+
+    simParamsEl.innerHTML = h;
+  }
+
+  function saveSim() { saveJSON(STORAGE_KEYS.sim, simState); }
+  function scheduleSim() { clearTimeout(simTimer); simTimer = setTimeout(runSim, 350); }
+
+  simParamsEl.addEventListener("input", function(e){
+    var t = e.target;
+    if (t.dataset.tier) {
+      simState.tiers[+t.dataset.idx][t.dataset.tier] = Number(t.value) || 0;
+    } else if (t.dataset.sim && t.type === "number") {
+      simState[t.dataset.sim] = t.value === "" ? (t.dataset.sim === "start" ? null : 0) : Number(t.value);
+    } else return;
+    saveSim(); scheduleSim();
+  });
+  simParamsEl.addEventListener("change", function(e){
+    var t = e.target, k = t.dataset.sim;
+    if (!k) return;
+    if (t.type === "checkbox") simState[k] = t.checked;
+    else if (t.tagName === "SELECT") simState[k] = (k === "nSims") ? Number(t.value) : t.value;
+    else return;
+    saveSim();
+    if (k === "mode" || k === "tiersOn" || k === "saqueOn") renderSimInputs();
+    runSim();
+  });
+  simParamsEl.addEventListener("click", function(e){
+    var b = e.target.closest("[data-act]");
+    if (!b) return;
+    var act = b.dataset.act;
+    if (act === "tier-add") {
+      var last = simState.tiers[simState.tiers.length - 1];
+      var min = last ? last.max : 0;
+      simState.tiers.push({ min: min, max: min + 100, pct: simState.basePct });
+    } else if (act === "tier-del") {
+      simState.tiers.splice(+b.dataset.idx, 1);
+    } else if (act === "preset") {
+      var P = simState.mode === "trade"
+        ? { cons: [55, 1.5, 0.5], mod: [50, 2, 1], agr: [45, 3, 2] }
+        : { cons: [65, 1.5, 0.5], mod: [60, 1.5, 1], agr: [55, 1.5, 2] };
+      var v = P[b.dataset.p];
+      simState.winRate = v[0]; simState.rr = v[1]; simState.basePct = v[2];
+    } else if (act === "hist-trades") {
+      var tr = computeTradeBalances();
+      var wins = tr.filter(function(x){ return x.result > 0; });
+      var losses = tr.filter(function(x){ return x.result < 0; });
+      if (!wins.length || !losses.length) { alert("Lance pelo menos 1 trade positivo e 1 negativo na aba Por Trade."); return; }
+      var avgW = wins.reduce(function(s,x){ return s + x.result; }, 0) / wins.length;
+      var avgL = Math.abs(losses.reduce(function(s,x){ return s + x.result; }, 0) / losses.length);
+      var riskPct = losses.reduce(function(s,x){ return s + Math.abs(x.result) / (x.before || 1); }, 0) / losses.length * 100;
+      simState.mode = "trade";
+      simState.winRate = Math.round(wins.length / tr.length * 1000) / 10;
+      simState.rr = Math.round(avgW / avgL * 100) / 100;
+      simState.basePct = Math.round(riskPct * 100) / 100;
+    } else if (act === "hist-dias") {
+      var ds = computeAll().days;
+      var g = ds.filter(function(x){ return x.retornoLiquido > 0; });
+      var r = ds.filter(function(x){ return x.retornoLiquido < 0; });
+      if (!g.length || !r.length) { alert("Lance pelo menos 1 dia positivo e 1 negativo na aba Diário."); return; }
+      var avgG = g.reduce(function(s,x){ return s + x.retornoLiquido; }, 0) / g.length;
+      var avgR = Math.abs(r.reduce(function(s,x){ return s + x.retornoLiquido; }, 0) / r.length);
+      simState.mode = "dia";
+      simState.winRate = Math.round(g.length / ds.length * 1000) / 10;
+      simState.rr = Math.round(avgG / avgR * 100) / 100;
+      simState.basePct = Math.round(avgG * 10000) / 100;
+    } else return;
+    saveSim(); renderSimInputs(); runSim();
+  });
+  document.getElementById("simRerun").addEventListener("click", function(){ runSim(); });
+
+  function getSimParams() {
+    var s = simState, cur = simCurrentBalance();
+    var tiers = (s.tiers || []).slice().sort(function(a, b){ return a.min - b.min; });
+    return {
+      mode: s.mode,
+      start: s.start > 0 ? s.start : (cur > 0 ? cur : 100),
+      basePct: Math.max(0, s.basePct),
+      p: simClamp((Number(s.winRate) || 0) / 100, 0, 1),
+      rr: Math.max(0.01, Number(s.rr) || 0.01),
+      ops: s.mode === "trade" ? simClamp(Math.round(s.opsPerDay) || 1, 1, 50) : 1,
+      days: simClamp(Math.round(s.days) || 1, 1, 500),
+      cost: Math.max(0, Number(s.cost) || 0),
+      reinvest: !!s.reinvest, tiersOn: !!s.tiersOn, tiers: tiers,
+      saqueOn: !!s.saqueOn, saqueMeta: Math.max(0.1, Number(s.saqueMeta) || 0.1), saquePct: simClamp(Number(s.saquePct) || 0, 0, 100),
+      ruin: simClamp(Number(s.ruin) || 0, 0, 100), target: Math.max(0, Number(s.target) || 0), nSims: s.nSims || 300
+    };
+  }
+  function simGL(p) { return p.mode === "trade" ? { g: p.rr, l: 1 } : { g: 1, l: 1 / p.rr }; }
+  function simPct(b, p) {
+    if (p.tiersOn) {
+      for (var i = 0; i < p.tiers.length; i++) if (b >= p.tiers[i].min && b <= p.tiers[i].max) return p.tiers[i].pct;
+    }
+    return p.basePct;
+  }
+
+  // rng = null -> caminho "esperado" (média matemática); com rng -> sorteio de ganho/perda
+  function runPath(p, rng) {
+    var m = simGL(p), b = p.start, ref = p.start, wd = 0, peak = p.start, maxDD = 0;
+    var streak = 0, maxStreak = 0, ruined = false, reached = -1;
+    var eqBy = new Float64Array(p.days + 1);
+    var wdBy = p.saqueOn ? new Float64Array(p.days + 1) : null;
+    eqBy[0] = p.start;
+    var ruinLvl = p.start * p.ruin / 100;
+    for (var d = 1; d <= p.days; d++) {
+      for (var k = 0; k < p.ops; k++) {
+        if (b > 0) {
+          var base = p.reinvest ? b : p.start;
+          var stake = base * simPct(b, p) / 100;
+          if (stake > b) stake = b;
+          var gain = stake * m.g, loss = stake * m.l, cost = stake * p.cost / 100, delta;
+          if (rng) {
+            if (rng() < p.p) { delta = gain - cost; streak = 0; }
+            else { delta = -loss - cost; streak++; if (streak > maxStreak) maxStreak = streak; }
+          } else delta = p.p * gain - (1 - p.p) * loss - cost;
+          b += delta;
+          if (b < 0) b = 0;
+          if (p.saqueOn && b >= ref * (1 + p.saqueMeta / 100)) {
+            var w = (b - ref) * p.saquePct / 100;
+            b -= w; wd += w; ref = b;
+          }
+        }
+        var eq = b + wd;
+        if (eq > peak) peak = eq;
+        var dd = peak > 0 ? (peak - eq) / peak : 0;
+        if (dd > maxDD) maxDD = dd;
+        if (!ruined && eq <= ruinLvl) ruined = true;
+        if (reached < 0 && p.target > 0 && eq >= p.target) reached = d;
+      }
+      eqBy[d] = b + wd;
+      if (wdBy) wdBy[d] = wd;
+    }
+    return { eq: eqBy, wdBy: wdBy, bal: b, wd: wd, maxDD: maxDD, maxStreak: maxStreak, ruined: ruined, reached: reached };
+  }
+
+  function simRng(seed) {
+    return function() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function simQ(sorted, q) { return sorted[Math.min(sorted.length - 1, Math.floor(q * (sorted.length - 1) + 0.5))]; }
+  function simMean(arr) { var s = 0; for (var i = 0; i < arr.length; i++) s += arr[i]; return arr.length ? s / arr.length : 0; }
+
+  function runSim() {
+    var p = getSimParams();
+    var det = runPath(p, null);
+    var steps = p.days * p.ops;
+    var n = Math.max(50, Math.min(p.nSims, Math.floor(8e6 / steps)));
+    var rng = simRng((Date.now() ^ Math.floor(Math.random() * 1e9)) >>> 0);
+    var runs = [];
+    for (var i = 0; i < n; i++) runs.push(runPath(p, rng));
+
+    var D = p.days, P10 = [], P50 = [], P90 = [];
+    for (var d = 0; d <= D; d++) {
+      var col = new Float64Array(n);
+      for (var j = 0; j < n; j++) col[j] = runs[j].eq[d];
+      col.sort();
+      P10.push(simQ(col, 0.1)); P50.push(simQ(col, 0.5)); P90.push(simQ(col, 0.9));
+    }
+    renderSimDiag(p);
+    renderSimChart(p, det, P10, P50, P90);
+    renderSimStats(p, runs, n, steps);
+    renderSimTable(p, det, runs, P10, P50, P90);
+    renderSimSens(p);
+  }
+
+  function statBox(k, v, cls) {
+    return '<div class="stat"><div class="k">' + k + '</div><div class="v num ' + (cls || "") + '" style="font-size:13px;">' + v + '</div></div>';
+  }
+
+  function renderSimDiag(p) {
+    var m = simGL(p), c = p.cost / 100;
+    var evU = p.p * m.g - (1 - p.p) * m.l - c;               // por unidade de valor arriscado/meta
+    var be = (m.l + c) / (m.g + m.l);
+    var pct = p.basePct;
+    var evPct = pct / 100 * evU;                              // retorno esperado por operação (fração do saldo)
+    var pf = (1 - p.p) > 0 ? (p.p * m.g) / ((1 - p.p) * m.l) : Infinity;
+    var kelly = (p.p * m.g - (1 - p.p) * m.l) / (m.g * m.l) * 100;   // % do saldo (em unidades de stake)
+    var perDay = Math.pow(1 + evPct, p.ops) - 1;
+    var edge = evU > 0;
+    var dobra = (edge && perDay > 0 && p.reinvest) ? Math.ceil(Math.log(2) / Math.log(1 + perDay)) : null;
+    var h = '<div class="stat-grid">' +
+      statBox("Acerto p/ empatar", fmtPct(be)) +
+      statBox("Seu acerto", fmtPct(p.p), edge ? "pos" : "neg") +
+      statBox("Vantagem", edge ? "Positiva" : "Negativa", edge ? "pos" : "neg") +
+      statBox("Retorno esperado / " + (p.mode === "trade" ? "operação" : "dia"), (evPct >= 0 ? "+" : "") + fmtPct(evPct), evPct >= 0 ? "pos" : "neg") +
+      statBox("Profit factor", isFinite(pf) ? pf.toFixed(2) : "∞") +
+      statBox("Kelly (stake ideal)", kelly > 0 ? kelly.toFixed(1) + "%" : "sem vantagem") +
+      '</div>';
+    var notes = [];
+    if (!edge) notes.push("Com esses números a estratégia perde dinheiro no longo prazo — precisa acertar mais de " + fmtPct(be) + " ou aumentar o R:R.");
+    if (edge && kelly > 0 && pct > kelly) notes.push("Seu " + (p.mode === "trade" ? "risco" : "valor por operação") + " (" + pct + "%) está acima do Kelly (" + kelly.toFixed(1) + "%): risco de oscilações muito fortes. Metade do Kelly costuma ser mais seguro.");
+    if (dobra) notes.push("Em média, o saldo dobra em ~" + dobra + " dia" + (dobra > 1 ? "s" : "") + " (retorno esperado de " + fmtPct(perDay) + " por dia).");
+    document.getElementById("simDiag").innerHTML = h +
+      (notes.length ? '<p class="legend-note" style="padding:0 4px 10px;">' + notes.join("<br>") + '</p>' : "");
+  }
+
+  function renderSimChart(p, det, P10, P50, P90) {
+    if (typeof Chart === "undefined") return;
+    var styles = getComputedStyle(document.documentElement);
+    var col = function(n){ return styles.getPropertyValue(n).trim(); };
+    var labels = []; for (var d = 0; d <= p.days; d++) labels.push(d);
+    var log = !!simState.logScale;
+    var fix = function(arr){ return Array.prototype.map.call(arr, function(v){ return log ? Math.max(v, 0.01) : v; }); };
+    if (simChart) simChart.destroy();
+    simChart = new Chart(document.getElementById("simChart").getContext("2d"), {
+      type: "line",
+      data: { labels: labels, datasets: [
+        { label: "P90 (otimista)", data: fix(P90), borderColor: col("--teal"), borderDash: [5,4], pointRadius: 0, borderWidth: 1.5, tension: 0.2 },
+        { label: "P50 (mediano)", data: fix(P50), borderColor: col("--gold"), pointRadius: 0, borderWidth: 2.5, tension: 0.2 },
+        { label: "P10 (pessimista)", data: fix(P10), borderColor: col("--danger"), borderDash: [5,4], pointRadius: 0, borderWidth: 1.5, tension: 0.2 },
+        { label: "Esperado", data: fix(det.eq), borderColor: col("--slate"), pointRadius: 0, borderWidth: 1.5, tension: 0.2 }
+      ]},
+      options: {
+        responsive: true, maintainAspectRatio: false, animation: false,
+        plugins: { legend: { labels: { color: col("--text-dim"), font: { family: "Space Grotesk", size: 10 }, boxWidth: 18 } } },
+        scales: {
+          x: { ticks: { color: col("--text-dim"), font: { size: 9 }, maxTicksLimit: 8 }, grid: { color: col("--border") }, title: { display: true, text: "dias", color: col("--text-dim"), font: { size: 9 } } },
+          y: { type: log ? "logarithmic" : "linear", ticks: { color: col("--text-dim"), font: { size: 9 } }, grid: { color: col("--border") } }
+        }
+      }
+    });
+  }
+
+  function renderSimStats(p, runs, n, steps) {
+    var finals = new Float64Array(n), bals = new Float64Array(n), dds = new Float64Array(n), strk = new Float64Array(n), wds = [];
+    var prof = 0, ruin = 0, reachedDays = [];
+    runs.forEach(function(r, i){
+      finals[i] = r.eq[p.days]; bals[i] = r.bal; dds[i] = r.maxDD; strk[i] = r.maxStreak; wds.push(r.wd);
+      if (finals[i] > p.start) prof++;
+      if (r.ruined) ruin++;
+      if (r.reached >= 0) reachedDays.push(r.reached);
+    });
+    finals.sort(); dds.sort(); strk.sort(); reachedDays.sort(function(a, b){ return a - b; });
+    var label = p.saqueOn ? "Patrimônio final" : "Saldo final";
+    var h = '<div class="stat-grid">' +
+      statBox("Chance de lucro", (prof / n * 100).toFixed(1) + "%", prof / n >= 0.5 ? "pos" : "neg") +
+      statBox("Chance de ruína", (ruin / n * 100).toFixed(1) + "%", ruin / n > 0.05 ? "neg" : "pos") +
+      statBox("Simulações", String(n)) +
+      statBox(label + " P10", moneyH(simQ(finals, 0.1))) +
+      statBox(label + " P50", moneyH(simQ(finals, 0.5))) +
+      statBox(label + " P90", moneyH(simQ(finals, 0.9))) +
+      statBox("Drawdown máx. (méd.)", fmtPct(simMean(dds))) +
+      statBox("Drawdown máx. (P90)", fmtPct(simQ(dds, 0.9))) +
+      statBox("Pior seq. de perdas", p.mode === "trade" ? (simMean(strk).toFixed(1) + " (P90: " + simQ(strk, 0.9) + ")") : "—");
+    h += '</div>';
+    var extra = [];
+    if (p.saqueOn) extra.push("Total sacado (média): <b>" + moneyH(simMean(wds)) + "</b> · saldo que fica na conta (mediano): <b>" + moneyH((function(){ var b2 = Array.prototype.slice.call(bals).sort(function(a,b){return a-b;}); return simQ(b2, 0.5); })()) + "</b>");
+    if (p.target > 0) {
+      extra.push("Chance de atingir " + fmtCompact(p.target) + " em " + p.days + " dias: <b>" + (reachedDays.length / n * 100).toFixed(1) + "%</b>" +
+        (reachedDays.length ? " · dia mediano: <b>" + simQ(reachedDays, 0.5) + "</b>" : ""));
+    }
+    extra.push("Ruína = patrimônio cair a " + simState.ruin + "% do saldo inicial ou menos em algum momento. " + n + " simulações de " + steps + " operações" + (n < p.nSims ? " (reduzido para manter o app rápido)" : "") + ".");
+    document.getElementById("simStats").innerHTML = h + '<p class="legend-note" style="padding:0 4px 12px; line-height:1.7;">' + extra.join("<br>") + '</p>';
+  }
+
+  function renderSimTable(p, det, runs, P10, P50, P90) {
+    var marks = [5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 252, 365, 500].filter(function(d){ return d < p.days; });
+    marks.push(p.days);
+    var h = '<table class="sim-table"><tr><th>Dia</th><th>Esperado</th><th>P10</th><th>P50</th><th>P90</th>' + (p.saqueOn ? '<th>Sacado</th>' : '') + '</tr>';
+    marks.forEach(function(d){
+      var wdMean = 0;
+      if (p.saqueOn) { var s = 0; runs.forEach(function(r){ s += r.wdBy[d]; }); wdMean = s / runs.length; }
+      h += '<tr><td>' + d + '</td><td>' + fmtCompact(det.eq[d]) + '</td><td class="neg">' + fmtCompact(P10[d]) + '</td><td>' + fmtCompact(P50[d]) +
+        '</td><td class="pos">' + fmtCompact(P90[d]) + '</td>' + (p.saqueOn ? '<td>' + fmtCompact(wdMean) + '</td>' : '') + '</tr>';
+    });
+    document.getElementById("simTable").innerHTML = h + '</table>';
+  }
+
+  function renderSimSens(p) {
+    var m0 = simGL(p), steps = p.days * p.ops;
+    var rates = [30, 35, 40, 45, 50, 55, 60, 65, 70], rrs = [0.5, 1, 1.5, 2, 3];
+    var nearW = rates.reduce(function(a, x){ return Math.abs(x - p.p * 100) < Math.abs(a - p.p * 100) ? x : a; }, rates[0]);
+    var nearR = rrs.reduce(function(a, x){ return Math.abs(x - p.rr) < Math.abs(a - p.rr) ? x : a; }, rrs[0]);
+    var h = '<table class="sim-table"><tr><th>Acerto \\ R:R</th>' + rrs.map(function(r){ return '<th>' + r + '</th>'; }).join("") + '</tr>';
+    rates.forEach(function(w){
+      h += '<tr><td>' + w + '%</td>';
+      rrs.forEach(function(r){
+        var g = p.mode === "trade" ? r : 1, l = p.mode === "trade" ? 1 : 1 / r;
+        var ev = p.basePct / 100 * ((w / 100) * g - (1 - w / 100) * l - p.cost / 100);
+        var fin = p.reinvest ? (1 + ev > 0 ? p.start * Math.pow(1 + ev, steps) : 0) : Math.max(0, p.start * (1 + ev * steps));
+        var up = fin >= p.start;
+        var bg = up ? "rgba(63,167,150,0.16)" : "rgba(217,108,108,0.16)";
+        h += '<td class="' + (w === nearW && r === nearR ? "sens-cur" : "") + '" style="background:' + bg + ';">' + fmtCompact(fin) + '</td>';
+      });
+      h += '</tr>';
+    });
+    document.getElementById("simSens").innerHTML = h + '</table>';
+  }
+
   // ---- export / import ----
   var downloadsCap = null;
   var exportBtn = document.getElementById("exportBtn");
@@ -1599,6 +2212,7 @@
       lot: lotState,
       trades: tradesState,
       tradeCfg: tradeCfg,
+      sim: simState,
       exportedAt: new Date().toISOString()
     }, null, 2);
     var safeName = profileName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "perfil";
@@ -1646,6 +2260,10 @@
           lotState.pointValue = Number(data.lot.pointValue) || lotState.pointValue;
           saveJSON(STORAGE_KEYS.lot, lotState);
         }
+        if (data.sim && typeof data.sim === "object") {
+          simState = Object.assign(SIM_DEFAULT(), data.sim);
+          saveJSON(STORAGE_KEYS.sim, simState);
+        }
         if (Array.isArray(data.trades)) {
           tradesState = data.trades;
           saveJSON(STORAGE_KEYS.trades, tradesState);
@@ -1686,6 +2304,8 @@
       if (btn.dataset.view === "projecao") renderProjecao();
       if (btn.dataset.view === "lote") renderLote();
       if (btn.dataset.view === "trade") renderTrade();
+      if (btn.dataset.view === "sim") { renderSimInputs(); runSim(); }
+      if (btn.dataset.view === "res") renderRes();
     });
   });
 
@@ -1784,7 +2404,7 @@
 
   function wipeProfileStorage(id) {
     setStorageKeys(id);
-    ["balance","entries","n","lot","trades","tradeCfg"].forEach(function(k){
+    ["balance","entries","n","lot","trades","tradeCfg","tiers","sim"].forEach(function(k){
       try { localStorage.removeItem(STORAGE_KEYS[k]); } catch (e) {}
     });
   }
@@ -1808,6 +2428,7 @@
     tradesState = loadJSON(STORAGE_KEYS.trades, []);
     tradeCfg = loadJSON(STORAGE_KEYS.tradeCfg, { n: 20, saqueOn: false, metaPct: 20, saquePct: 100 });
     tierState = loadJSON(STORAGE_KEYS.tiers, { enabled: false, mode: "teto", tiers: [] });
+    simState = Object.assign(SIM_DEFAULT(), loadJSON(STORAGE_KEYS.sim, {}));
 
     initialBalanceInput.value = state.balance;
     document.getElementById("initialBalanceCurrencySymbol").textContent = (CURRENCIES[ACTIVE_CURRENCY] || CURRENCIES.USD).symbol;
@@ -1824,6 +2445,10 @@
     renderLote();
     renderTrade();
     renderFx();
+    renderSimInputs();
+    resState.ready = false;
+    renderRes();
+    if (document.getElementById("view-sim").classList.contains("active")) runSim();
     hideProfileOverlay();
   }
 
